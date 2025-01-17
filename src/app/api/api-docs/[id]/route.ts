@@ -8,7 +8,8 @@ import { z } from "zod";
 const apiDocSchema = z
 	.object({
 		name: z.string().min(1, "Name is required"),
-		jsonUrl: z.string().url("Invalid URL format").optional(),
+		logo: z.string().url("Invalid logo URL format").optional().nullable(),
+		jsonUrl: z.string().url("Invalid URL format").optional().nullable(),
 		jsonContent: z.string().optional(),
 		isPublic: z.boolean().optional().default(false),
 		accessCode: z.string().optional(),
@@ -23,6 +24,9 @@ const apiDocSchema = z
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
 	try {
+		const { searchParams } = new URL(req.url);
+		const accessCode = searchParams.get("code");
+
 		const apiDoc = await prisma.apiDoc.findUnique({
 			where: {
 				id: params.id,
@@ -37,7 +41,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 			const session = await getServerSession(authOptions);
 
 			if (!session?.user?.id || apiDoc.userId !== session.user.id) {
-				return new NextResponse("Unauthorized", { status: 401 });
+				// Check access code if provided
+				if (apiDoc.accessCode && accessCode !== apiDoc.accessCode) {
+					return new NextResponse("Invalid access code", { status: 401 });
+				} else if (!apiDoc.accessCode) {
+					return new NextResponse("Unauthorized", { status: 401 });
+				}
 			}
 		}
 
@@ -69,10 +78,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 		}
 
 		const data = await req.json();
-		
+
 		// Validate the request data using Zod
 		const validationResult = apiDocSchema.safeParse(data);
-		
+
 		if (!validationResult.success) {
 			return NextResponse.json(
 				{
@@ -85,7 +94,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 		const updatedApiDoc = await prisma.apiDoc.update({
 			where: {
-				id: params.id,
+				id: (await params).id,
 			},
 			data: validationResult.data,
 		});

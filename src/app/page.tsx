@@ -30,9 +30,9 @@ export default function Home() {
 
   const item = {
     hidden: { opacity: 0, y: 20, scale: 0.8 },
-    show: { 
-      opacity: 1, 
-      y: 0, 
+    show: {
+      opacity: 1,
+      y: 0,
       scale: 1,
       transition: {
         type: "spring",
@@ -51,9 +51,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent opacity-40" />
         </div>
 
-        <div className="mx-auto max-w-screen-2xl px-6 py-24 sm:py-32 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -61,7 +61,7 @@ export default function Home() {
             >
               Your Personal API Documentation Hub
             </motion.h1>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -69,7 +69,7 @@ export default function Home() {
             >
               Create your own API documentation library by importing OpenAPI 3.0 specifications. Test, manage, and share your APIs with an interactive interface similar to Swagger UI and Stoplight.
             </motion.p>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
@@ -109,12 +109,12 @@ export default function Home() {
           <div className="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent opacity-40" />
         </div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="relative mx-auto max-w-screen-2xl px-6 lg:px-8 text-center"
+          className="relative mx-auto max-w-7xl px-6 lg:px-8 text-center"
         >
           <h2 className="text-base font-semibold leading-7 text-indigo-400">Powerful Features</h2>
           <p className="mt-2 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -122,14 +122,14 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="relative mx-auto max-w-screen-2xl px-6 lg:px-8 mt-16 sm:mt-20 lg:mt-24"
+          className="relative mx-auto max-w-7xl px-6 lg:px-8 mt-16 sm:mt-20 lg:mt-24"
         >
-          <dl className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="grid grid-cols-1 gap-8 sm:grid-cols-3 lg:grid-cols-3">
             {features.map((feature) => (
               <motion.div
                 key={feature.name}
@@ -139,7 +139,7 @@ export default function Home() {
               >
                 <div className="relative h-full overflow-hidden rounded-2xl bg-gray-800/50 p-8 ring-1 ring-inset ring-white/10 backdrop-blur-lg transition-all duration-300 hover:ring-indigo-500/50">
                   <div className="absolute -inset-px bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
-                  
+
                   <dt className="flex flex-col items-start gap-y-4">
                     <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/50">
                       <feature.icon className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
@@ -158,9 +158,65 @@ export default function Home() {
         </motion.div>
       </div>
 
+      {/* Contact Section */}
+      <div className="relative py-24 sm:py-32">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute h-full w-full bg-gradient-to-b from-indigo-500/20 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent opacity-40" />
+        </div>
+
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="relative isolate overflow-hidden bg-gray-800/50 px-6 py-12 shadow-2xl rounded-3xl backdrop-blur-sm ring-1 ring-white/10 sm:px-24 xl:py-16"
+          >
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Let&apos;s Build Something Amazing Together</h2>
+              <p className="mt-4 text-lg leading-8 text-gray-300">
+                Have questions or need help? Feel free to reach out. We&apos;re here to help you create amazing API documentation.
+              </p>
+              <div className="mt-8 flex justify-center gap-x-6">
+                <Link
+                  href="https://cihantaylan.com"
+                  className="rounded-xl bg-indigo-500 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400 transition-all duration-300"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get in Touch
+                </Link>
+                <Link
+                  href="https://github.com/cihanTAYLAN/just-api-doc"
+                  className="rounded-xl bg-white/10 px-8 py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-all duration-300"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View on GitHub
+                </Link>
+              </div>
+            </div>
+            <svg
+              viewBox="0 0 1024 1024"
+              className="absolute left-1/2 top-1/2 -z-10 h-[64rem] w-[64rem] -translate-x-1/2 -translate-y-1/2"
+              aria-hidden="true"
+            >
+              <circle cx="512" cy="512" r="512" fill="url(#radial)" fillOpacity="0.05" />
+              <defs>
+                <radialGradient id="radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(512 512) rotate(90) scale(512)">
+                  <stop stopColor="#7C3AED" />
+                  <stop offset="1" stopColor="#7C3AED" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+            </svg>
+          </motion.div>
+        </div>
+      </div>
+
       {/* Footer */}
       <footer className="border-t border-gray-800">
-        <div className="mx-auto max-w-screen-2xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
           <div className="flex justify-center space-x-6 md:order-2">
             <a
               href="https://github.com/cihanTAYLAN/just-api-doc"

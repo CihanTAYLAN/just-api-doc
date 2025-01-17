@@ -7,6 +7,8 @@ import { ApiDoc } from "@prisma/client"
 import CreateApiDocButton from "@/components/CreateApiDocButton"
 import EditApiDocForm from "@/components/EditApiDocForm"
 import ApiDocList from "@/components/ApiDocList"
+import EmptyState from "@/components/EmptyState"
+import DashboardLoading from "./loading"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
@@ -75,7 +77,7 @@ export default function DashboardPage() {
   }
 
   if (status === "loading" || loading) {
-    return <div className="p-4">Loading...</div>
+    return <DashboardLoading />
   }
 
   if (error) {
@@ -93,25 +95,31 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Your API Docs</h1>
-        <CreateApiDocButton onClick={() => setIsCreateModalOpen(true)} />
+    <div className="min-h-screen-custom">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Your API Docs</h1>
+          <CreateApiDocButton onClick={() => setIsCreateModalOpen(true)} />
+        </div>
+
+        {apiDocs.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <ApiDocList apiDocs={apiDocs} onEdit={handleEdit} />
+        )}
+
+        <EditApiDocForm
+          apiDoc={selectedDoc}
+          isOpen={isEditModalOpen}
+          onClose={handleEditClose}
+        />
+
+        <EditApiDocForm
+          apiDoc={null}
+          isOpen={isCreateModalOpen}
+          onClose={handleCreateClose}
+        />
       </div>
-
-      <ApiDocList apiDocs={apiDocs} onEdit={handleEdit} />
-
-      <EditApiDocForm
-        apiDoc={selectedDoc}
-        isOpen={isEditModalOpen}
-        onClose={handleEditClose}
-      />
-
-      <EditApiDocForm
-        apiDoc={null}
-        isOpen={isCreateModalOpen}
-        onClose={handleCreateClose}
-      />
     </div>
   )
 }

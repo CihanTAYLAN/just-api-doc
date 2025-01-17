@@ -17,6 +17,7 @@ export default function EditApiDocForm({ apiDoc, isOpen, onClose }: EditApiDocFo
 
   const [formData, setFormData] = useState({
     name: apiDoc?.name || "",
+    logo: apiDoc?.logo || "",
     jsonUrl: apiDoc?.jsonUrl || "",
     jsonContent: apiDoc?.jsonContent || "",
     isPublic: apiDoc?.isPublic || false,
@@ -31,6 +32,7 @@ export default function EditApiDocForm({ apiDoc, isOpen, onClose }: EditApiDocFo
     if (apiDoc) {
       setFormData({
         name: apiDoc?.name,
+        logo: apiDoc?.logo || "",
         jsonUrl: apiDoc?.jsonUrl || "",
         jsonContent: apiDoc?.jsonContent || "",
         isPublic: apiDoc?.isPublic,
@@ -144,16 +146,19 @@ export default function EditApiDocForm({ apiDoc, isOpen, onClose }: EditApiDocFo
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  JSON URL
+                  Logo URL
                 </label>
                 <input
                   type="url"
-                  name="jsonUrl"
-                  value={formData.jsonUrl}
+                  name="logo"
+                  value={formData.logo}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="https://example.com/api-spec.json"
+                  placeholder="https://example.com/logo.png"
                 />
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Enter a URL for your API documentation logo (optional)
+                </p>
               </div>
 
               <div>
@@ -164,9 +169,23 @@ export default function EditApiDocForm({ apiDoc, isOpen, onClose }: EditApiDocFo
                   name="jsonContent"
                   value={formData.jsonContent}
                   onChange={handleChange}
-                  rows={5}
+                  rows={3}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Paste your JSON content here"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  JSON URL
+                </label>
+                <input
+                  type="url"
+                  name="jsonUrl"
+                  value={formData.jsonUrl}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="https://example.com/api-spec.json"
                 />
               </div>
 

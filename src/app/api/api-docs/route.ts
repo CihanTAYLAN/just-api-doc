@@ -8,6 +8,7 @@ import { z } from "zod";
 const apiDocSchema = z
 	.object({
 		name: z.string().min(1, "Name is required"),
+		logo: z.string().url("Invalid logo URL format").optional().nullable(),
 		jsonUrl: z.string().url("Invalid URL format").optional(),
 		jsonContent: z.string().optional(),
 		isPublic: z.boolean().optional().default(false),
