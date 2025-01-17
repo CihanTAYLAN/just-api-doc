@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import axios from 'axios';
 import { ApiEndpoint, ApiSpec } from './types';
@@ -25,10 +25,17 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 }) => {
   const { theme } = useTheme();
   const [selectedTab, setSelectedTab] = useState<'docs' | 'try'>('docs');
-  const [selectedServer, setSelectedServer] = useState<string>(spec.servers?.[0]?.url || '');
+  const [selectedServer, setSelectedServer] = useState<string>('');
   const [requestData, setRequestData] = useState<any>({});
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  // Set initial server when spec is available
+  useEffect(() => {
+    if (spec?.servers?.length > 0) {
+      setSelectedServer(spec.servers[0].url);
+    }
+  }, [spec]);
 
   const fullUrl = `${selectedServer}${path}`;
 

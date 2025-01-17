@@ -33,8 +33,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   return (
     <div
-      className="h-full flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
-      style={{ width }}
+      className="relative h-full flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+      style={{ width, minWidth: '150px', maxWidth: '600px' }}
     >
       {/* Search */}
       <div className="p-2 border-b border-gray-200 dark:border-gray-700">
@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Resize Handle */}
       <div
-        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/50"
+        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/50 active:bg-blue-500"
         onMouseDown={onStartResizing}
       />
     </div>

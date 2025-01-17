@@ -259,7 +259,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   }
 
   return (
-    <div className="h-full flex">
+    <div className="flex h-full w-full overflow-hidden">
       <Sidebar
         groupedEndpoints={groupedEndpoints}
         openGroups={openGroups}
@@ -271,22 +271,17 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
-
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         {selectedEndpoint ? (
           <EndpointDetail
+            endpoint={selectedEndpoint.endpoint}
             path={selectedEndpoint.path}
             method={selectedEndpoint.method}
-            endpoint={selectedEndpoint.endpoint}
-            spec={spec}
+            spec={spec!}
           />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-gray-500">
-            <InformationCircleIcon className="h-8 w-8 mb-2" />
-            <div className="text-center">
-              <h3 className="font-medium">Select an endpoint</h3>
-              <p className="text-sm">Choose an endpoint from the sidebar to view its details</p>
-            </div>
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <p>Select an endpoint to view details</p>
           </div>
         )}
       </div>
