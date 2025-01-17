@@ -8,7 +8,7 @@ export const features = [
 	},
 	{
 		name: "API Testing",
-		description: "Test your APIs directly from the documentation interface, similar to Swagger UI or Stoplight. Make requests and view responses in real-time.",
+		description: "Test your APIs directly from the documentation interface. Make requests and view responses in real-time.",
 		icon: BeakerIcon,
 	},
 	{

@@ -67,7 +67,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 sm:text-xl"
             >
-              Create your own API documentation library by importing OpenAPI 3.0 specifications. Test, manage, and share your APIs with an interactive interface similar to Swagger UI and Stoplight.
+              Create your own API documentation library by importing OpenAPI 3.0 specifications. Test, manage, and share your APIs with an interactive and modern interface.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
