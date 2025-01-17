@@ -144,10 +144,104 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
 
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-red-500 flex items-center space-x-2">
-          <ExclamationTriangleIcon className="h-5 w-5" />
-          <span>{error}</span>
+      <div className="absolute inset-0 flex items-center justify-center p-8 bg-white dark:bg-gray-900">
+        <div className="w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <div className="rounded-full bg-red-100 p-2 dark:bg-red-900/20">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Authentication Required
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Unable to load the API documentation
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Possible Authentication Requirements
+                </h4>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500"></div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        API Key or Token
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Add authorization header with your API key
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500"></div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        Basic Authentication
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Username and password credentials may be required
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500"></div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        OAuth 2.0
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        OAuth token might be needed for access
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500"></div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        Wrong Config URL
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Check if the provided URL is correct
+                      </p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-800/50 -mx-6 -mb-6 p-6 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900/20">
+                      <InformationCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Please review your configuration and ensure you've provided the necessary authentication credentials. You can update these settings in the API documentation configuration.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
