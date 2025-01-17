@@ -27,7 +27,7 @@ export default async function EditApiDocPage({ params }: EditApiDocPageProps) {
     redirect("/dashboard")
   }
 
-  if (apiDoc.userId !== session?.user?.id) {
+  if (apiDoc.userId !== session.user.id) {
     redirect("/dashboard")
   }
 

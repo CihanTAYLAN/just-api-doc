@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Just API Doc
 
-## Getting Started
+A modern and user-friendly API documentation platform. Create, manage, and share your API documentation with ease.
 
-First, run the development server:
+## Features
+
+- Create and manage API documentation in JSON format
+- Support for JSON URL or file upload
+- Customizable logo and appearance
+- Advanced access control
+  - Public/Private documentation
+  - Access code protection
+  - Custom sharing URLs
+- Multi-user support
+- Responsive design
+
+## Technologies
+
+- [Next.js 14](https://nextjs.org/) - React Framework
+- [TypeScript](https://www.typescriptlang.org/) - Type Safety
+- [Prisma](https://www.prisma.io/) - ORM
+- [PostgreSQL](https://www.postgresql.org/) - Database
+- [NextAuth.js](https://next-auth.js.org/) - Authentication
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [React](https://reactjs.org/) - UI Library
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/cihanTAYLAN/just-api-doc.git
+cd just-api-doc
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create `.env` file:
+
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/just_api_doc"
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+4. Set up the database schema:
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+5. Start the application:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Register or log in
+2. Click "Create New Doc" in the dashboard
+3. For your API documentation:
+   - Set a name
+   - Enter JSON URL or upload JSON file
+   - Add logo (optional)
+   - Configure access settings
+4. Share or edit your documentation
 
-## Learn More
+## Access Control
 
-To learn more about Next.js, take a look at the following resources:
+- **Public**: Anyone can view
+- **Private**: Only you can view
+- **Protected**: Protected with access code
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contact
+
+- GitHub: [@cihanTAYLAN](https://github.com/cihanTAYLAN)
+- Twitter: [@cihantaylan24](https://twitter.com/cihantaylan24)
+
+---
+
+Don't forget to star this project if you found it helpful!
