@@ -1,11 +1,11 @@
 # Just API Doc
 
-A modern and user-friendly API documentation platform. Create, manage, and share your API documentation with ease.
+A modern and user-friendly API documentation platform. Manage, and share your API documentation with ease.
 
 ## Features
 
 - Import API documentation from OpenAPI 3.0 JSON
-- Support for JSON URL or file upload
+- Support for JSON URL or JSON string
 - Customizable logo and appearance
 - Advanced access control
   - Public/Private documentation
