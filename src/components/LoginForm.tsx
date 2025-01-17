@@ -42,7 +42,7 @@ export default function LoginForm() {
 
   return (
     <div className="bg-white dark:bg-gray-800 px-6 py-12 shadow sm:rounded-lg sm:px-12">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="email"
@@ -56,6 +56,8 @@ export default function LoginForm() {
               name="email"
               type="email"
               autoComplete="email"
+              placeholder="Email"
+              autoFocus
               required
               className="block w-full rounded-md border-0 text-gray-900 dark:text-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:focus:ring-indigo-500 sm:text-sm sm:leading-6"
             />
@@ -74,6 +76,7 @@ export default function LoginForm() {
               id="password"
               name="password"
               type="password"
+              placeholder="Password"
               autoComplete="current-password"
               required
               className="block w-full rounded-md border-0 text-gray-900 dark:text-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:focus:ring-indigo-500 sm:text-sm sm:leading-6"
