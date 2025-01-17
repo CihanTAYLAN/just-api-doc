@@ -93,8 +93,9 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-- GitHub: [@cihanTAYLAN](https://github.com/cihanTAYLAN)
-- Twitter: [@cihantaylan24](https://twitter.com/cihantaylan24)
+- Website: [cihantaylan.com](https://cihantaylan.com)
+- GitHub: [@cihantaylan](https://github.com/cihantaylan)
+- X: [@cihantaylan24](https://x.com/cihantaylan24)
 
 ---
 
