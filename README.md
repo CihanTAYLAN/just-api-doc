@@ -68,7 +68,7 @@ npm run dev
 2. Click "Create New" in the dashboard
 3. For your API documentation:
    - Set a name
-   - Enter JSON URL or enter JSON file
+   - Enter JSON URL or enter JSON string
    - Add logo (optional)
    - Configure access settings
 4. Share or edit your documentation
