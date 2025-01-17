@@ -13,29 +13,43 @@ export default function DashboardPage() {
   const router = useRouter()
   const [apiDocs, setApiDocs] = useState<ApiDoc[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedDoc, setSelectedDoc] = useState<ApiDoc | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const loadApiDocs = async () => {
     try {
-      const res = await fetch("/api/api-docs")
-      if (!res.ok) throw new Error("Failed to fetch API docs")
+      setError(null)
+      const res = await fetch("/api/api-docs", {
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText || "Failed to fetch API docs")
+      }
 
       const data = await res.json()
       setApiDocs(data)
     } catch (error) {
       console.error("Error loading API docs:", error)
+      setError(error instanceof Error ? error.message : "Failed to load API docs")
+      setApiDocs([])
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    if (status === "loading") return
+    if (status === "loading") {
+      return
+    }
 
-    if (!session) {
-      router.push("/login")
+    if (!session?.user) {
+      router.replace("/login")
       return
     }
 
@@ -44,60 +58,60 @@ export default function DashboardPage() {
 
   const handleEdit = (doc: ApiDoc) => {
     setSelectedDoc(doc)
+    console.log(doc);
+
     setIsEditModalOpen(true)
   }
 
   const handleEditClose = async () => {
     setIsEditModalOpen(false)
     setSelectedDoc(null)
-    await loadApiDocs() // Liste güncellemesi için
+    await loadApiDocs()
   }
 
   const handleCreateClose = async () => {
     setIsCreateModalOpen(false)
-    await loadApiDocs() // Liste güncellemesi için
+    await loadApiDocs()
   }
 
   if (status === "loading" || loading) {
+    return <div className="p-4">Loading...</div>
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen-custom p-8">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Loading...</h1>
-        </div>
+      <div className="p-4 text-red-500">
+        Error: {error}
+        <button
+          onClick={loadApiDocs}
+          className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Retry
+        </button>
       </div>
     )
   }
 
-  if (!session) {
-    router.push("/login")
-    return null
-  }
-
   return (
-    <div className="min-h-screen-custom p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Your API Documentation</h1>
-          <CreateApiDocButton
-            isOpen={isCreateModalOpen}
-            onClose={handleCreateClose}
-            onOpen={() => setIsCreateModalOpen(true)}
-          />
-        </div>
-
-        <ApiDocList
-          apiDocs={apiDocs}
-          onEdit={handleEdit}
-        />
-
-        {selectedDoc && (
-          <EditApiDocForm
-            apiDoc={selectedDoc}
-            isOpen={isEditModalOpen}
-            onClose={handleEditClose}
-          />
-        )}
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Your API Docs</h1>
+        <CreateApiDocButton onClick={() => setIsCreateModalOpen(true)} />
       </div>
+
+      <ApiDocList apiDocs={apiDocs} onEdit={handleEdit} />
+
+      <EditApiDocForm
+        apiDoc={selectedDoc}
+        isOpen={isEditModalOpen}
+        onClose={handleEditClose}
+      />
+
+      <EditApiDocForm
+        apiDoc={null}
+        isOpen={isCreateModalOpen}
+        onClose={handleCreateClose}
+      />
     </div>
   )
 }

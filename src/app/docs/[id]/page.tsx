@@ -6,18 +6,17 @@ import ApiDocViewer from "@/components/ApiDocViewer"
 
 interface ViewApiDocPageProps {
   params: {
-    id: string
-  }
-  searchParams: {
-    code?: string
+    id: string | undefined
   }
 }
 
-export default async function ViewApiDocPage({ params, searchParams }: ViewApiDocPageProps) {
+export default async function ViewApiDocPage({ params }: ViewApiDocPageProps) {
   const session = await getServerSession(authOptions)
+  const { id } = await params;
+
   const apiDoc = await prisma.apiDoc.findUnique({
     where: {
-      id: params.id,
+      id: id,
     },
     include: {
       user: {
@@ -29,24 +28,13 @@ export default async function ViewApiDocPage({ params, searchParams }: ViewApiDo
     },
   })
 
+
   if (!apiDoc) {
-    redirect("/")
+    redirect("/dashboard")
   }
 
-  // Check access permissions
-  if (!apiDoc.isPublic) {
-    // If not public, check if user is owner
-    if (session?.user?.id === apiDoc.userId) {
-      // Allow access to owner
-    } else if (apiDoc.accessCode) {
-      // If has access code, check if provided code matches
-      if (searchParams.code !== apiDoc.accessCode) {
-        redirect(`/docs/${params.id}/access`)
-      }
-    } else {
-      // If private and no access code, only owner can view
-      redirect("/")
-    }
+  if (!apiDoc.isPublic && (!session?.user?.id || session.user.id !== apiDoc.userId)) {
+    redirect(`/docs/${apiDoc.id}/access`)
   }
 
   return (

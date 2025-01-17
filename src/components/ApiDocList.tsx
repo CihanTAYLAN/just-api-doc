@@ -1,10 +1,8 @@
-"use client"
-
-import { ApiDoc } from "@prisma/client"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { CalendarIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline"
+"use client";
+import { ApiDoc } from "@prisma/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CalendarIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
 
 interface ApiDocListProps {
   apiDocs: ApiDoc[]
@@ -77,9 +75,8 @@ export default function ApiDocList({ apiDocs, onEdit }: ApiDocListProps) {
                 <CalendarIcon className="w-3 h-3 mr-1" />
                 {new Date(doc.updatedAt).toLocaleDateString()}
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                doc.isPublic ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100'
-              }`}>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${doc.isPublic ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100'
+                }`}>
                 {doc.isPublic ? "Public" : "Private"}
                 {!doc.isPublic && doc.accessCode && " • Protected"}
               </span>

@@ -24,15 +24,30 @@ model User {
 }
 
 model ApiDoc {
-  id            String         @id @default(cuid())
-  name          String
-  logo          String?
-  jsonUrl       String?
-  jsonContent   String?
-  isPublic      Boolean        @default(false)
-  accessCode    String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  userId        String
-  user          User           @relation(fields: [userId], references: [id])
+  id          String    @id @default(cuid())
+  name        String
+  logo        String?
+  jsonUrl     String?
+  jsonContent String?
+  isPublic    Boolean   @default(false)
+  accessCode  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // API Authorization settings
+  authType    AuthType  @default(NONE)
+  authKey     String?   // API Key, Basic Auth username, or Bearer token
+  authSecret  String?   // API Key value, Basic Auth password
+  authHeader  String?   // Custom header name for API Key
+
+  @@index([userId])
+}
+
+enum AuthType {
+  NONE
+  API_KEY
+  BASIC_AUTH
+  BEARER_TOKEN
 }
