@@ -21,7 +21,7 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/api-docs")
       if (!res.ok) throw new Error("Failed to fetch API docs")
-      
+
       const data = await res.json()
       setApiDocs(data)
     } catch (error) {
@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (status === "loading") return
-    
+
     if (!session) {
       router.push("/login")
       return
@@ -60,7 +60,7 @@ export default function DashboardPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen p-8">
+      <div className="min-h-screen-custom p-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Loading...</h1>
         </div>
@@ -74,19 +74,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen-custom p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Your API Documentation</h1>
-          <CreateApiDocButton 
+          <CreateApiDocButton
             isOpen={isCreateModalOpen}
             onClose={handleCreateClose}
             onOpen={() => setIsCreateModalOpen(true)}
           />
         </div>
 
-        <ApiDocList 
-          apiDocs={apiDocs} 
+        <ApiDocList
+          apiDocs={apiDocs}
           onEdit={handleEdit}
         />
 

@@ -46,9 +46,9 @@ export default async function RootLayout({
       <body className={`${inter.className} h-full antialiased`} suppressHydrationWarning>
         <SessionProvider session={session}>
           <ThemeProvider>
-            <div className="min-h-screen bg-white dark:bg-gray-900">
+            <div className="min-h-screen-custom bg-white dark:bg-gray-900">
               <Navbar session={session} />
-              <main className="min-h-screen">{children}</main>
+              <main className="min-h-screen-custom">{children}</main>
             </div>
           </ThemeProvider>
         </SessionProvider>

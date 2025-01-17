@@ -50,7 +50,7 @@ export default async function ViewApiDocPage({ params, searchParams }: ViewApiDo
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen-custom">
       <ApiDocViewer apiDoc={apiDoc} />
     </div>
   )

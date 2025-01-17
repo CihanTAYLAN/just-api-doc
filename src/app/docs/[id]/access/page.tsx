@@ -25,7 +25,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen-custom flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow p-6">
         <h1 className="text-2xl font-bold text-center mb-6">
           Access Required
