@@ -78,31 +78,6 @@ interface EndpointGroup {
   }[]
 }
 
-function groupEndpoints(paths: ApiSpec['paths']): EndpointGroup[] {
-  const groups: { [key: string]: EndpointGroup } = {}
-
-  Object.entries(paths).forEach(([path, methods]) => {
-    const groupName = path.split('/')[1] || 'default'
-
-    if (!groups[groupName]) {
-      groups[groupName] = {
-        name: groupName,
-        endpoints: []
-      }
-    }
-
-    Object.entries(methods).forEach(([method, endpoint]) => {
-      groups[groupName].endpoints.push({
-        path,
-        method,
-        endpoint
-      })
-    })
-  })
-
-  return Object.values(groups)
-}
-
 function generateCodeSample(path: string, method: string, parameters: any, requestBody: any) {
   const samples = {
     'Node / Axios': `const axios = require('axios');
@@ -148,41 +123,7 @@ except requests.exceptions.RequestException as e:
   return samples
 }
 
-function EndpointCard({ path, method, endpoint, onSelect }: {
-  path: string
-  method: string
-  endpoint: ApiEndpoint
-  onSelect: () => void
-}) {
-  const methodColors = {
-    get: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-    post: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
-    put: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-    patch: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-    delete: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
-  }
 
-  return (
-    <div
-      className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer rounded-lg"
-      onClick={onSelect}
-    >
-      <div className="flex items-center space-x-3">
-        <span
-          className={`px-2 py-1 rounded-md text-xs font-medium uppercase ${methodColors[method.toLowerCase() as keyof typeof methodColors] ||
-            "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300"
-            }`}
-        >
-          {method}
-        </span>
-        <code className="text-sm font-mono text-gray-900 dark:text-gray-100">{path}</code>
-      </div>
-      {endpoint.summary && (
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 ml-14">{endpoint.summary}</p>
-      )}
-    </div>
-  )
-}
 
 function EndpointDetail({
   path,
@@ -504,102 +445,6 @@ function EndpointDetail({
   )
 }
 
-// Helper components for the sidebar
-function SidebarGroup({
-  name,
-  isOpen,
-  onToggle,
-  children,
-}: {
-  name: string
-  isOpen: boolean
-  onToggle: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <div className="border-b border-gray-200 dark:border-gray-700">
-      <button
-        onClick={onToggle}
-        className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
-      >
-        <span>{name}</span>
-        <svg
-          className={`w-4 h-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {isOpen && <div className="pb-2">{children}</div>}
-    </div>
-  )
-}
-
-function SidebarItem({
-  method,
-  path,
-  operationId,
-  isSelected,
-  onClick,
-  level = 0
-}: {
-  method: string
-  path: string
-  operationId?: string
-  isSelected: boolean
-  onClick: () => void
-  level?: number
-}) {
-  const methodColors = {
-    get: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-    post: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
-    put: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-    patch: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-    delete: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
-  }
-
-  // Get the operation name from operationId
-  const operationName = operationId?.split('.').pop() || path
-
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        flex items-center w-full text-left text-sm
-        ${isSelected
-          ? "bg-gray-100 dark:bg-gray-800"
-          : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
-        }
-        px-3 py-1.5
-      `}
-      style={{ paddingLeft: `${(level * 12) + 12}px` }}
-    >
-      <div className="flex items-center min-w-0">
-        {level > 0 && (
-          <div
-            className="flex-shrink-0 w-px bg-gray-200 dark:bg-gray-700 self-stretch mr-3"
-            style={{
-              marginLeft: '2px',
-              height: '24px'
-            }}
-          />
-        )}
-        <span
-          className={`inline-block px-2 py-0.5 text-xs font-medium rounded uppercase mr-2 ${methodColors[method.toLowerCase() as keyof typeof methodColors] || 'bg-gray-100 text-gray-800'
-            }`}
-        >
-          {method}
-        </span>
-        <span className="truncate text-gray-700 dark:text-gray-300">
-          {operationName}
-        </span>
-      </div>
-    </button>
-  )
-}
-
 async function fetchApiSpec(apiDoc: ApiDoc) {
   try {
     if (apiDoc.jsonContent) {
@@ -779,6 +624,7 @@ export default function ApiDocViewer({ apiDoc }: ApiDocViewerProps) {
           title={tagDescription}
         >
           <div className="flex items-center space-x-2">
+            <span>🌐</span>
             <span>{name}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
               ({endpoints.length})
