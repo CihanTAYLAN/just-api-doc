@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 
 export default function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
@@ -13,49 +14,53 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800">
-        <div className="w-5 h-5" />
-      </button>
+      <div className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full" />
     )
   }
 
+  const isDark = resolvedTheme === "dark"
+
   return (
     <button
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      className="rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="relative inline-flex items-center justify-between w-12 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900"
       aria-label="Toggle theme"
     >
-      {resolvedTheme === "dark" ? (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-5 h-5 text-gray-700 dark:text-gray-300"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-          />
-        </svg>
-      ) : (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-5 h-5 text-gray-700 dark:text-gray-300"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
-          />
-        </svg>
-      )}
+      <span className="sr-only">Toggle theme</span>
+      
+      {/* Sun Icon */}
+      <motion.svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="absolute left-1 w-4 h-4 text-yellow-300"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        initial={{ scale: isDark ? 0 : 1, opacity: isDark ? 0 : 1 }}
+        animate={{ scale: isDark ? 0 : 1, opacity: isDark ? 0 : 1 }}
+        transition={{ duration: 0.2 }}
+      >
+        <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+      </motion.svg>
+
+      {/* Moon Icon */}
+      <motion.svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="absolute right-1 w-4 h-4 text-blue-100"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        initial={{ scale: isDark ? 1 : 0, opacity: isDark ? 1 : 0 }}
+        animate={{ scale: isDark ? 1 : 0, opacity: isDark ? 1 : 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+      </motion.svg>
+
+      {/* Toggle Circle */}
+      <motion.div
+        className="absolute w-5 h-5 bg-white rounded-full shadow-lg"
+        initial={{ x: isDark ? "24px" : "2px" }}
+        animate={{ x: isDark ? "24px" : "2px" }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      />
     </button>
   )
 }

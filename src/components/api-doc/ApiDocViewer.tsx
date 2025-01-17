@@ -128,8 +128,16 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent" />
+      <div className="flex items-center justify-center h-screen bg-white dark:bg-gray-900">
+        <div className="space-y-4 text-center">
+          <div className="relative w-12 h-12 mx-auto">
+            <div className="absolute w-full h-full border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
+            <div className="absolute w-full h-full border-4 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin"></div>
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Loading API Documentation...
+          </div>
+        </div>
       </div>
     );
   }
