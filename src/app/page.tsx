@@ -43,7 +43,7 @@ export default function Home() {
   }
 
   return (
-    <div className="relative isolate bg-gray-900">
+    <div className="relative isolate bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
@@ -57,7 +57,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl"
+              className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl lg:text-7xl"
             >
               Your Personal API Documentation Hub
             </motion.h1>
@@ -65,7 +65,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="mt-6 text-lg leading-8 text-gray-300 sm:text-xl"
+              className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 sm:text-xl"
             >
               Create your own API documentation library by importing OpenAPI 3.0 specifications. Test, manage, and share your APIs with an interactive interface similar to Swagger UI and Stoplight.
             </motion.p>
@@ -92,7 +92,7 @@ export default function Home() {
                   </Link>
                   <Link
                     href="/login"
-                    className="text-base font-semibold leading-6 text-gray-300 hover:text-white transition-colors duration-300"
+                    className="text-base font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
                   >
                     Log in <span aria-hidden="true">→</span>
                   </Link>
@@ -117,7 +117,7 @@ export default function Home() {
           className="relative mx-auto max-w-7xl px-6 lg:px-8 text-center"
         >
           <h2 className="text-base font-semibold leading-7 text-indigo-400">Powerful Features</h2>
-          <p className="mt-2 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          <p className="mt-2 text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
             Everything You Need for API Documentation
           </p>
         </motion.div>
@@ -137,18 +137,18 @@ export default function Home() {
                 whileHover={{ scale: 1.02 }}
                 className="group relative"
               >
-                <div className="relative h-full overflow-hidden rounded-2xl bg-gray-800/50 p-8 ring-1 ring-inset ring-white/10 backdrop-blur-lg transition-all duration-300 hover:ring-indigo-500/50">
+                <div className="relative h-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800/50 p-8 ring-1 ring-inset ring-white/10 dark:ring-gray-700/10 backdrop-blur-lg transition-all duration-300 hover:ring-indigo-500/50">
                   <div className="absolute -inset-px bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
 
                   <dt className="flex flex-col items-start gap-y-4">
                     <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/50">
                       <feature.icon className="h-8 w-8 text-white transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
                     </div>
-                    <span className="text-xl font-semibold leading-7 text-white transition-colors duration-300 group-hover:text-indigo-400">
+                    <span className="text-xl font-semibold leading-7 text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-indigo-400">
                       {feature.name}
                     </span>
                   </dt>
-                  <dd className="mt-4 text-base leading-7 text-gray-300 transition-colors duration-300 group-hover:text-gray-100">
+                  <dd className="mt-4 text-base leading-7 text-gray-700 dark:text-gray-300 transition-colors duration-300 group-hover:text-gray-100 dark:group-hover:text-gray-100">
                     {feature.description}
                   </dd>
                 </div>
@@ -171,11 +171,11 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
-            className="relative isolate overflow-hidden bg-gray-800/50 px-6 py-12 shadow-2xl rounded-3xl backdrop-blur-sm ring-1 ring-white/10 sm:px-24 xl:py-16"
+            className="relative isolate overflow-hidden bg-gray-100 dark:bg-gray-800/50 px-6 py-12 shadow-2xl rounded-3xl backdrop-blur-sm ring-1 ring-white/10 dark:ring-gray-700/10 sm:px-24 xl:py-16"
           >
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Let&apos;s Build Something Amazing Together</h2>
-              <p className="mt-4 text-lg leading-8 text-gray-300">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">Let&apos;s Build Something Amazing Together</h2>
+              <p className="mt-4 text-lg leading-8 text-gray-700 dark:text-gray-300">
                 Have questions or need help? Feel free to reach out. We&apos;re here to help you create amazing API documentation.
               </p>
               <div className="mt-8 flex justify-center gap-x-6">
@@ -189,7 +189,7 @@ export default function Home() {
                 </Link>
                 <Link
                   href="https://github.com/cihanTAYLAN/just-api-doc"
-                  className="rounded-xl bg-white/10 px-8 py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-all duration-300"
+                  className="rounded-xl bg-white/10 dark:bg-gray-700/10 px-8 py-4 text-base font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-white/20 dark:ring-gray-700/20 hover:bg-white/20 dark:hover:bg-gray-600 hover:ring-white/30 dark:hover:ring-gray-600 transition-all duration-300"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -215,12 +215,12 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800">
+      <footer className="border-t border-gray-200 dark:border-gray-700">
         <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
           <div className="flex justify-center space-x-6 md:order-2">
             <a
               href="https://github.com/cihanTAYLAN/just-api-doc"
-              className="text-gray-500 hover:text-gray-400"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-400 dark:hover:text-gray-300"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -231,7 +231,7 @@ export default function Home() {
             </a>
             <a
               href="https://twitter.com/cihantaylan24"
-              className="text-gray-500 hover:text-gray-400"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-400 dark:hover:text-gray-300"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -242,7 +242,7 @@ export default function Home() {
             </a>
           </div>
           <div className="mt-8 md:order-1 md:mt-0">
-            <p className="text-center text-sm leading-5 text-gray-500">
+            <p className="text-center text-sm leading-5 text-gray-500 dark:text-gray-400">
               &copy; {new Date().getFullYear()} Just API Doc. All rights reserved.
             </p>
           </div>
