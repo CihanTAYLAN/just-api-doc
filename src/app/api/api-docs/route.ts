@@ -8,15 +8,15 @@ import { z } from "zod";
 const apiDocSchema = z
 	.object({
 		name: z.string().min(1, "Name is required"),
-		logo: z.string().url("Invalid logo URL format").optional().nullable(),
-		jsonUrl: z.string().url("Invalid URL format").optional(),
-		jsonContent: z.string().optional(),
+		logo: z.string().optional().default(""),
+		jsonUrl: z.string().optional().default(""),
+		jsonContent: z.string().optional().default(""),
 		isPublic: z.boolean().optional().default(false),
-		accessCode: z.string().optional(),
+		accessCode: z.string().optional().default(""),
 		authType: z.enum(["NONE", "API_KEY", "BASIC_AUTH", "BEARER_TOKEN"]).optional().default("NONE"),
-		authKey: z.string().optional(),
-		authSecret: z.string().optional(),
-		authHeader: z.string().optional(),
+		authKey: z.string().optional().default(""),
+		authSecret: z.string().optional().default(""),
+		authHeader: z.string().optional().default(""),
 	})
 	.refine((data) => data.jsonUrl || data.jsonContent, {
 		message: "Either JSON URL or content must be provided",

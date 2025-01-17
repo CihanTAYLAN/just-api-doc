@@ -45,29 +45,43 @@ export default function EditApiDocForm({ apiDoc, isOpen, onClose }: EditApiDocFo
     }
   }, [apiDoc])
 
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
     try {
-      const response = await fetch(
-        apiDoc ? `/api/api-docs/${apiDoc.id}` : "/api/api-docs",
-        {
-          method: apiDoc ? "PATCH" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      )
+      // API URL validasyonu
+      if (formData.jsonUrl && !isValidUrl(formData.jsonUrl)) {
+        throw new Error("Invalid API URL format")
+      }
 
+      // Logo alanını boş string ise undefined olarak ayarla
+      const payload = {
+        ...formData,
+        logo: formData.logo || undefined
+      };
+
+      const response = await fetch(apiDoc ? `/api/api-docs/${apiDoc.id}` : "/api/api-docs", {
+        method: apiDoc ? "PATCH" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
 
       const data = await response.json()
 
       if (!response.ok) {
-        console.log(response);
-
         if (data.errors) {
           // Validation errors from zod
           const errorMessage = data.errors.map((err: any) => err.message).join(", ")
