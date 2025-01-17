@@ -4,7 +4,7 @@ A modern and user-friendly API documentation platform. Create, manage, and share
 
 ## Features
 
-- Create and manage API documentation in JSON format
+- Import API documentation from OpenAPI 3.0 JSON
 - Support for JSON URL or file upload
 - Customizable logo and appearance
 - Advanced access control
