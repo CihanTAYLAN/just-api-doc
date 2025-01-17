@@ -11,13 +11,16 @@ export async function POST(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const { name, jsonUrl, jsonContent, isPublic, accessCode } = await req.json()
+    const { name, jsonUrl, isPublic, accessCode } = await req.json()
+
+    if (!name) {
+      return new NextResponse("Name is required", { status: 400 })
+    }
 
     const apiDoc = await prisma.apiDoc.create({
       data: {
         name,
         jsonUrl,
-        jsonContent,
         isPublic,
         accessCode,
         userId: session.user.id,
@@ -26,6 +29,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(apiDoc)
   } catch (error) {
+    console.error("Error creating API doc:", error)
     return new NextResponse("Internal error", { status: 500 })
   }
 }
@@ -41,6 +45,9 @@ export async function GET(req: Request) {
         where: {
           isPublic: true,
         },
+        orderBy: {
+          createdAt: "desc",
+        },
       })
       return NextResponse.json(apiDocs)
     }
@@ -52,6 +59,9 @@ export async function GET(req: Request) {
     const apiDocs = await prisma.apiDoc.findMany({
       where: {
         userId: session.user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     })
 

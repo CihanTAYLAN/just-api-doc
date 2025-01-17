@@ -43,38 +43,37 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const { name, logo, jsonUrl, jsonContent, isPublic, accessCode } = await req.json()
+    const { name, jsonUrl, isPublic, accessCode } = await req.json()
 
-    const apiDoc = await prisma.apiDoc.findUnique({
+    const existingDoc = await prisma.apiDoc.findUnique({
       where: {
         id: params.id,
       },
     })
 
-    if (!apiDoc) {
+    if (!existingDoc) {
       return new NextResponse("API Doc not found", { status: 404 })
     }
 
-    if (apiDoc.userId !== session.user.id) {
+    if (existingDoc.userId !== session.user.id) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const updatedApiDoc = await prisma.apiDoc.update({
+    const apiDoc = await prisma.apiDoc.update({
       where: {
         id: params.id,
       },
       data: {
         name,
-        logo,
         jsonUrl,
-        jsonContent,
         isPublic,
         accessCode,
       },
     })
 
-    return NextResponse.json(updatedApiDoc)
+    return NextResponse.json(apiDoc)
   } catch (error) {
+    console.error("Error updating API doc:", error)
     return new NextResponse("Internal error", { status: 500 })
   }
 }
@@ -90,17 +89,17 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const apiDoc = await prisma.apiDoc.findUnique({
+    const existingDoc = await prisma.apiDoc.findUnique({
       where: {
         id: params.id,
       },
     })
 
-    if (!apiDoc) {
+    if (!existingDoc) {
       return new NextResponse("API Doc not found", { status: 404 })
     }
 
-    if (apiDoc.userId !== session.user.id) {
+    if (existingDoc.userId !== session.user.id) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 

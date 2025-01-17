@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { signIn } from "next-auth/react"
 
 export default function RegisterForm() {
@@ -32,88 +33,115 @@ export default function RegisterForm() {
         }),
       })
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.message || "Something went wrong")
-      }
+      if (res.ok) {
+        const result = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        })
 
-      // Sign in the user after successful registration
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
+        if (result?.error) {
+          setError("Error signing in after registration")
+          return
+        }
 
-      if (result?.error) {
-        setError("Failed to sign in after registration")
-        return
-      }
-
-      router.push("/dashboard")
-      router.refresh()
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message)
+        router.push("/dashboard")
+        router.refresh()
       } else {
-        setError("Something went wrong")
+        const data = await res.json()
+        setError(data.error || "Something went wrong")
       }
+    } catch (error) {
+      setError("Something went wrong")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Name
-        </label>
-        <input
-          type="text"
-          name="name"
-          id="name"
-          required
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-        />
-      </div>
+    <div className="bg-white dark:bg-gray-800 px-6 py-12 shadow sm:rounded-lg sm:px-12">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
+          >
+            Full name
+          </label>
+          <div className="mt-2">
+            <input
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              required
+              className="block w-full rounded-md border-0 text-gray-900 dark:text-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:focus:ring-indigo-500 sm:text-sm sm:leading-6"
+            />
+          </div>
+        </div>
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
-        </label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          required
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-        />
-      </div>
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
+          >
+            Email address
+          </label>
+          <div className="mt-2">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              className="block w-full rounded-md border-0 text-gray-900 dark:text-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:focus:ring-indigo-500 sm:text-sm sm:leading-6"
+            />
+          </div>
+        </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
-        </label>
-        <input
-          type="password"
-          name="password"
-          id="password"
-          required
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-        />
-      </div>
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
+          >
+            Password
+          </label>
+          <div className="mt-2">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              className="block w-full rounded-md border-0 text-gray-900 dark:text-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:focus:ring-indigo-500 sm:text-sm sm:leading-6"
+            />
+          </div>
+        </div>
 
-      {error && (
-        <div className="text-red-500 text-sm">{error}</div>
-      )}
+        {error && (
+          <div className="text-sm text-red-500 dark:text-red-400">{error}</div>
+        )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-      >
-        {loading ? "Loading..." : "Register"}
-      </button>
-    </form>
+        <div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Creating account..." : "Create account"}
+          </button>
+        </div>
+
+        <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300"
+          >
+            Sign in
+          </Link>
+        </div>
+      </form>
+    </div>
   )
 }
