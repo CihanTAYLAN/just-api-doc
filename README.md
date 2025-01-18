@@ -85,23 +85,23 @@ Here are some screenshots showcasing the platform's interface and features:
 
 ### Dashboard View
 
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/register.png" alt="Dashboard View" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/register.png" alt="Dashboard View" />
 
 ### API Documentation Creation
 
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/dashboard.png" alt="API Documentation Creation" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/dashboard.png" alt="API Documentation Creation" />
 
 ### API Documentation View
 
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/create-new.png" alt="API Documentation View" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/create-new.png" alt="API Documentation View" />
 
 ### Access Control Settings
 
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/dashboard-2.png" alt="Access Control Settings" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/dashboard-2.png" alt="Access Control Settings" />
 
 ### Documentation Management
 
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/api-doc.png" alt="Documentation Management" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/api-doc.png" alt="Documentation Management" />
 
 ## Contributing
 
