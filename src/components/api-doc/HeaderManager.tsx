@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface Header {
@@ -22,9 +22,32 @@ export const HeaderManager: React.FC<HeaderManagerProps> = ({
   const [newHeaderKey, setNewHeaderKey] = useState('');
   const [newHeaderValue, setNewHeaderValue] = useState('');
 
+  // Load headers from localStorage on mount
+  useEffect(() => {
+    const savedHeaders = localStorage.getItem('api-headers');
+    if (savedHeaders) {
+      try {
+        const parsedHeaders = JSON.parse(savedHeaders);
+        // Merge saved headers with current headers
+        const mergedHeaders = [...headers];
+        parsedHeaders.forEach((savedHeader: Header) => {
+          const exists = mergedHeaders.some(h => h.key.toLowerCase() === savedHeader.key.toLowerCase());
+          if (!exists) {
+            mergedHeaders.push(savedHeader);
+          }
+        });
+        onChange(mergedHeaders);
+      } catch (error) {
+        console.error('Error parsing saved headers:', error);
+      }
+    }
+  }, []);
+
   const addHeader = () => {
     if (newHeaderKey.trim()) {
-      onChange([...headers, { key: newHeaderKey.trim(), value: newHeaderValue.trim() }]);
+      const newHeaders = [...headers, { key: newHeaderKey.trim(), value: newHeaderValue.trim() }];
+      localStorage.setItem('api-headers', JSON.stringify(newHeaders));
+      onChange(newHeaders);
       setNewHeaderKey('');
       setNewHeaderValue('');
     }
@@ -33,16 +56,19 @@ export const HeaderManager: React.FC<HeaderManagerProps> = ({
   const removeHeader = (index: number) => {
     const newHeaders = [...headers];
     newHeaders.splice(index, 1);
+    localStorage.setItem('api-headers', JSON.stringify(newHeaders));
     onChange(newHeaders);
   };
 
   const updateHeader = (index: number, field: 'key' | 'value', value: string) => {
     const newHeaders = [...headers];
     newHeaders[index] = { ...newHeaders[index], [field]: value };
+    localStorage.setItem('api-headers', JSON.stringify(newHeaders));
     onChange(newHeaders);
   };
 
   const resetToDefault = () => {
+    localStorage.setItem('api-headers', JSON.stringify(defaultHeaders));
     onChange(defaultHeaders);
   };
 

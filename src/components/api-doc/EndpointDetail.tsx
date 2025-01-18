@@ -142,17 +142,21 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         }
 
         const savedValue = headerValues[headerKey.toLowerCase()];
-        defaultHeaders.push({
-          key: headerKey,
-          value: savedValue || defaultValue
-        });
+        const existingHeader = headers.find(h => h.key.toLowerCase() === headerKey.toLowerCase());
+        if (!existingHeader) {
+          defaultHeaders.push({
+            key: headerKey,
+            value: savedValue || defaultValue
+          });
+        }
       }
     });
 
     // Finally add headers from parameters
     endpoint.parameters?.forEach(param => {
       if (param.in === 'header') {
-        const existingHeader = defaultHeaders.find(h => h.key.toLowerCase() === param.name.toLowerCase());
+        const existingHeader = headers.find(h => h.key.toLowerCase() === param.name.toLowerCase()) ||
+                             defaultHeaders.find(h => h.key.toLowerCase() === param.name.toLowerCase());
         if (!existingHeader) {
           const savedValue = headerValues[param.name.toLowerCase()];
           defaultHeaders.push({
@@ -163,7 +167,10 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       }
     });
 
-    setHeaders(defaultHeaders);
+    // Only set headers if we don't have any existing headers
+    if (headers.length === 0) {
+      setHeaders(defaultHeaders);
+    }
   }, [securitySchemes, endpoint.parameters, endpoint.requestBody, endpoint.path, endpoint.method, headerValues]);
 
   // Update header values when headers change
@@ -383,7 +390,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
               {requiresAuth.length > 0 && (
                 <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-full group relative">
                   <svg className="h-3.5 w-3.5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 015 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
                   </svg>
                   <span>Auth Required</span>
 
