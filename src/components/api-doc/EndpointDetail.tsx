@@ -465,16 +465,48 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   };
 
+  // Load path parameters from localStorage
+  useEffect(() => {
+    const storedParams = localStorage.getItem(`pathParams-${path}`);
+    if (storedParams) {
+      try {
+        const parsedParams = JSON.parse(storedParams);
+        setPathParams(parsedParams);
+      } catch (error) {
+        console.error('Error parsing stored path parameters:', error);
+      }
+    }
+  }, [path]);
+
+  // Save path parameters to localStorage when they change
+  useEffect(() => {
+    if (Object.keys(pathParams).length > 0) {
+      localStorage.setItem(`pathParams-${path}`, JSON.stringify(pathParams));
+    }
+  }, [pathParams, path]);
+
   // Initialize path parameters from OpenAPI spec
   useEffect(() => {
     const defaultPathParams: Record<string, string> = {};
+    const storedParams = localStorage.getItem(`pathParams-${path}`);
+    let initialParams = {};
+
+    if (storedParams) {
+      try {
+        initialParams = JSON.parse(storedParams);
+      } catch (error) {
+        console.error('Error parsing stored path parameters:', error);
+      }
+    }
+
     endpoint.parameters?.forEach(param => {
       if (param.in === 'path') {
-        defaultPathParams[param.name] = '';
+        defaultPathParams[param.name] = (initialParams as Record<string, string>)[param.name] || '';
       }
     });
+    
     setPathParams(defaultPathParams);
-  }, [endpoint.parameters]);
+  }, [endpoint.parameters, path]);
 
   // Function to replace path parameters in URL
   const getUrlWithPathParams = useCallback((urlPath: string) => {
@@ -487,10 +519,12 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
   // Handle path parameter changes
   const handlePathParamChange = (paramName: string, value: string) => {
-    setPathParams(prev => ({
-      ...prev,
+    const newParams = {
+      ...pathParams,
       [paramName]: value
-    }));
+    };
+    setPathParams(newParams);
+    localStorage.setItem(`pathParams-${path}`, JSON.stringify(newParams));
   };
 
   return (
