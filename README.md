@@ -83,25 +83,25 @@ npm run dev
 
 Here are some screenshots showcasing the platform's interface and features:
 
-### Dashboard View
+### Register & Login Page
 
-<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/register.png" alt="Dashboard View" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/register.png" alt="Register and Login Page" />
 
-### API Documentation Creation
+### Empty Dashboard
 
-<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/dashboard.png" alt="API Documentation Creation" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/dashboard.png" alt="Empty Dashboard" />
 
-### API Documentation View
+### Create New API Documentation
 
-<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/create-new.png" alt="API Documentation View" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/create-new.png" alt="Create New API Documentation" />
 
-### Access Control Settings
+### Dashboard with API Documentation
 
-<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/dashboard-2.png" alt="Access Control Settings" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/dashboard-2.png" alt="Dashboard with API Documentation" />
 
-### Documentation Management
+### API Documentation Page
 
-<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/api-doc.png" alt="Documentation Management" />
+<img src="https://raw.githubusercontent.com/CihanTAYLAN/just-api-doc/refs/heads/main/screen-images/api-doc.png" alt="API Documentation Page" />
 
 ## Contributing
 
