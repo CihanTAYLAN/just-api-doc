@@ -10,6 +10,7 @@ import { generateExampleFromSchema } from './utils/schemaToExample';
 import { resolveSchema } from './utils/resolveSchema';
 import { JsonEditor } from './JsonEditor';
 import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { Headers } from './Headers';
 
 interface EndpointDetailProps {
   path: string;
@@ -35,6 +36,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [securitySchemes, setSecuritySchemes] = useState<Array<{ type: string; name: string; in: string }>>([]);
   const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
+  const [selectedContentType, setSelectedContentType] = useState<string>('');
+  const [formData, setFormData] = useState<Record<string, string>>({});
 
   // Reset state when endpoint changes
   useEffect(() => {
@@ -45,78 +48,87 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     setHeaders([]); // Reset headers when endpoint changes
   }, [endpoint.path, endpoint.method]);
 
-  // Store header values when they change
-  const updateHeaderValues = useCallback((headers: Array<{ key: string; value: string }>) => {
-    const newHeaderValues: Record<string, string> = { ...headerValues };
-    let hasChanges = false;
+  // Get default value for a parameter based on its schema
+  const getDefaultValueForParameter = useCallback((param: OpenAPIV3.ParameterObject): string => {
+    if (!param.schema) return '';
 
-    headers.forEach(header => {
-      const key = header.key.toLowerCase();
-      // Only store non-default values
-      if (!isDefaultHeaderValue(header.value)) {
-        if (newHeaderValues[key] !== header.value) {
-          newHeaderValues[key] = header.value;
-          hasChanges = true;
-        }
-      } else if (key in newHeaderValues) {
-        delete newHeaderValues[key];
-        hasChanges = true;
-      }
-    });
-
-    if (hasChanges) {
-      setHeaderValues(newHeaderValues);
+    const schema = param.schema as OpenAPIV3.SchemaObject;
+    if (schema.default !== undefined) {
+      return String(schema.default);
     }
-  }, [headerValues]);
 
-  // Check if a header value is a default value
-  const isDefaultHeaderValue = useCallback((value: string): boolean => {
-    const defaultValues = [
-      'Bearer YOUR_TOKEN_HERE',
-      'YOUR_API_KEY_HERE',
-      'Bearer YOUR_OAUTH_TOKEN_HERE',
-      'application/json'
-    ];
-    return defaultValues.includes(value);
+    if (schema.example !== undefined) {
+      return String(schema.example);
+    }
+
+    switch (schema.type) {
+      case 'string':
+        return schema.enum ? schema.enum[0] : 'string';
+      case 'number':
+      case 'integer':
+        return '0';
+      case 'boolean':
+        return 'false';
+      case 'array':
+        return '[]';
+      case 'object':
+        return '{}';
+      default:
+        return '';
+    }
   }, []);
 
-  // Extract security schemes from OpenAPI spec
-  useEffect(() => {
-    if (!endpoint?.security || !spec.components?.securitySchemes) {
-      setSecuritySchemes([]);
-      return;
+  // Store header values when they change
+  const updateHeaderValues = useCallback((headers: Array<{ key: string; value: string }>) => {
+    const newHeaderValues: Record<string, string> = {};
+    headers.forEach(header => {
+      newHeaderValues[header.key.toLowerCase()] = header.value;
+    });
+    setHeaderValues(newHeaderValues);
+  }, []);
+
+  // Get Content-Type header based on request body
+  const getContentTypeHeader = useCallback(() => {
+    if (!endpoint.requestBody) {
+      return null;
     }
 
-    const schemes: Array<{ type: string; name: string; in: string }> = [];
-
-    endpoint.security.forEach(security => {
-      const securityKey = Object.keys(security)[0];
-      const scheme = spec.components?.securitySchemes?.[securityKey];
-
-      if (scheme && scheme.in === 'header') {
-        schemes.push({
-          type: scheme.type,
-          name: scheme.name,
-          in: scheme.in
-        });
+    let contentType = 'application/json';
+    if (endpoint.requestBody.content) {
+      const contentTypes = Object.keys(endpoint.requestBody.content);
+      if (contentTypes.length > 0) {
+        contentType = contentTypes[0];
       }
-    });
+    }
 
-    setSecuritySchemes(schemes);
-  }, [endpoint?.security, spec.components?.securitySchemes]);
+    return {
+      key: 'Content-Type',
+      value: contentType
+    };
+  }, [endpoint.requestBody]);
+
+  // Handle header changes
+  const handleHeaderChange = useCallback((newHeaders: Array<{ key: string; value: string }>) => {
+    const contentTypeHeader = getContentTypeHeader();
+    
+    // Yeni header'lar içinde Content-Type varsa onu kullan, yoksa eskisini ekle
+    const updatedHeaders = newHeaders.filter(h => h.key.toLowerCase() !== 'content-type');
+    if (contentTypeHeader) {
+      updatedHeaders.unshift(contentTypeHeader);
+    }
+
+    setHeaders(updatedHeaders);
+    updateHeaderValues(updatedHeaders);
+  }, [getContentTypeHeader, updateHeaderValues]);
 
   // Initialize headers with security schemes and default parameters
   useEffect(() => {
     const defaultHeaders: { key: string; value: string }[] = [];
 
-    // First, add Content-Type header
-    const contentType = getContentTypeHeader();
-    if (contentType) {
-      const savedValue = headerValues[contentType.key.toLowerCase()];
-      defaultHeaders.push({
-        key: contentType.key,
-        value: savedValue || contentType.value
-      });
+    // First, add Content-Type header if exists
+    const contentTypeHeader = getContentTypeHeader();
+    if (contentTypeHeader) {
+      defaultHeaders.push(contentTypeHeader);
     }
 
     // Then add security-related headers
@@ -142,11 +154,13 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             return;
         }
 
-        const savedValue = headerValues[headerKey.toLowerCase()];
-        defaultHeaders.push({
-          key: headerKey,
-          value: savedValue || defaultValue
-        });
+        const existingHeader = defaultHeaders.find(h => h.key.toLowerCase() === headerKey.toLowerCase());
+        if (!existingHeader) {
+          defaultHeaders.push({
+            key: headerKey,
+            value: defaultValue
+          });
+        }
       }
     });
 
@@ -155,76 +169,22 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       if (param.in === 'header') {
         const existingHeader = defaultHeaders.find(h => h.key.toLowerCase() === param.name.toLowerCase());
         if (!existingHeader) {
-          const savedValue = headerValues[param.name.toLowerCase()];
           defaultHeaders.push({
             key: param.name,
-            value: savedValue || getDefaultValueForParameter(param)
+            value: getDefaultValueForParameter(param)
           });
         }
       }
     });
 
-    // Get saved custom headers
-    const savedHeaders = localStorage.getItem('api-headers');
-    let customHeaders: Array<{ key: string; value: string }> = [];
-    if (savedHeaders) {
-      try {
-        customHeaders = JSON.parse(savedHeaders);
-      } catch (error) {
-        console.error('Error parsing saved headers:', error);
-      }
-    }
-
-    // Merge default headers with custom headers, giving priority to custom headers
-    const mergedHeaders = [...defaultHeaders];
-    customHeaders.forEach(customHeader => {
-      const existingIndex = mergedHeaders.findIndex(h => h.key.toLowerCase() === customHeader.key.toLowerCase());
-      if (existingIndex !== -1) {
-        mergedHeaders[existingIndex] = customHeader;
-      } else {
-        mergedHeaders.push(customHeader);
-      }
-    });
-
-    setHeaders(mergedHeaders);
-  }, [securitySchemes, endpoint.parameters, endpoint.requestBody, endpoint.path, endpoint.method, headerValues]);
+    setHeaders(defaultHeaders);
+    updateHeaderValues(defaultHeaders);
+  }, [endpoint, securitySchemes, getContentTypeHeader, getDefaultValueForParameter, updateHeaderValues]);
 
   // Update header values when headers change
   useEffect(() => {
     updateHeaderValues(headers);
   }, [headers, updateHeaderValues]);
-
-  // Helper function to determine Content-Type header
-  const getContentTypeHeader = (): { key: string; value: string } | null => {
-    // If endpoint has request body, use its content type
-    if (endpoint.requestBody?.content) {
-      const contentTypes = Object.keys(endpoint.requestBody.content);
-      if (contentTypes.length > 0) {
-        return {
-          key: 'Content-Type',
-          value: contentTypes[0]
-        };
-      }
-    }
-
-    // If endpoint has parameters that are sent in body
-    if (endpoint.parameters?.some(param => param.in === 'body')) {
-      return {
-        key: 'Content-Type',
-        value: 'application/json'
-      };
-    }
-
-    // For POST, PUT, PATCH methods, always include Content-Type
-    if (['post', 'put', 'patch'].includes(method.toLowerCase())) {
-      return {
-        key: 'Content-Type',
-        value: 'application/json'
-      };
-    }
-
-    return null;
-  };
 
   // Initialize query parameters from OpenAPI spec
   useEffect(() => {
@@ -239,27 +199,30 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     setQueryParams(defaultParams);
   }, [endpoint.parameters, endpoint.path, endpoint.method]);
 
-  // Helper function to get default value based on parameter schema
-  const getDefaultValueForParameter = (param: any): string => {
-    const schema = param.schema;
-    if (!schema) return '';
-
-    switch (schema.type) {
-      case 'string':
-        return schema.default || '';
-      case 'number':
-      case 'integer':
-        return schema.default?.toString() || '0';
-      case 'boolean':
-        return schema.default?.toString() || 'false';
-      case 'array':
-        return schema.default ? JSON.stringify(schema.default) : '[]';
-      case 'object':
-        return schema.default ? JSON.stringify(schema.default) : '{}';
-      default:
-        return '';
+  // Extract security schemes from OpenAPI spec
+  useEffect(() => {
+    if (!endpoint?.security || !spec.components?.securitySchemes) {
+      setSecuritySchemes([]);
+      return;
     }
-  };
+
+    const schemes: Array<{ type: string; name: string; in: string }> = [];
+
+    endpoint.security.forEach(security => {
+      const securityKey = Object.keys(security)[0];
+      const scheme = spec.components?.securitySchemes?.[securityKey];
+
+      if (scheme && scheme.in === 'header') {
+        schemes.push({
+          type: scheme.type,
+          name: scheme.name,
+          in: scheme.in
+        });
+      }
+    });
+
+    setSecuritySchemes(schemes);
+  }, [endpoint?.security, spec.components?.securitySchemes]);
 
   // Check if endpoint requires authentication
   const requiresAuth = useMemo(() => {
@@ -295,7 +258,178 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   }, [endpoint.requestBody, spec, requestBody]);
 
+  // Get available content types
+  const contentTypes = useMemo(() => {
+    if (!endpoint.requestBody?.content) return [];
+    return Object.keys(endpoint.requestBody.content);
+  }, [endpoint.requestBody]);
+
+  // Initialize content type
+  useEffect(() => {
+    if (contentTypes.length > 0) {
+      // Prefer application/json if available
+      const defaultType = contentTypes.includes('application/json') 
+        ? 'application/json' 
+        : contentTypes[0];
+      setSelectedContentType(defaultType);
+    }
+  }, [contentTypes]);
+
+  // Handle form data changes
+  const handleFormDataChange = (key: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  // Render request body based on content type
+  const renderRequestBody = () => {
+    if (!endpoint.requestBody?.content || !selectedContentType) return null;
+
+    const content = endpoint.requestBody.content[selectedContentType];
+    if (!content) return null;
+
+    switch (selectedContentType) {
+      case 'application/json':
+        const jsonValue = (() => {
+          try {
+            if (requestBody) {
+              return typeof requestBody === 'string' 
+                ? requestBody 
+                : JSON.stringify(requestBody, null, 2);
+            }
+
+            // Generate example from schema if no request body
+            const schema = content.schema;
+            if (!schema) return '{}';
+
+            const resolvedSchema = resolveSchema(schema, spec);
+            const example = generateExampleFromSchema(resolvedSchema);
+            if (!requestBody) {
+              setRequestBody(JSON.stringify(example, null, 2));
+            }
+            return JSON.stringify(example, null, 2);
+          } catch (error) {
+            console.error('Error preparing JSON:', error);
+            return '{}';
+          }
+        })();
+
+        return (
+          <div className="space-y-4">
+            <div className="relative">
+              <JsonEditor
+                value={jsonValue}
+                onChange={(value) => {
+                  try {
+                    // Only parse if it's valid JSON
+                    JSON.parse(value);
+                    setRequestBody(value);
+                  } catch {
+                    // If not valid JSON, still update but don't parse
+                    setRequestBody(value);
+                  }
+                }}
+                height="400px"
+              />
+            </div>
+          </div>
+        );
+
+      case 'multipart/form-data':
+      case 'application/x-www-form-urlencoded':
+        const schema = content.schema as OpenAPIV3.SchemaObject;
+        const properties = schema.properties || {};
+
+        return (
+          <div className="space-y-4">
+            <div className="space-y-3">
+              {Object.entries(properties).map(([key, prop]) => {
+                const property = prop as OpenAPIV3.SchemaObject;
+                return (
+                  <div key={key} className="flex flex-col gap-1">
+                    <label className="text-sm font-medium">
+                      {key}
+                      {schema.required?.includes(key) && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </label>
+                    {selectedContentType === 'multipart/form-data' && property.type === 'string' && property.format === 'binary' ? (
+                      <input
+                        type="file"
+                        className="block w-full text-sm text-gray-500 dark:text-gray-400
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          dark:file:bg-blue-900/20 dark:file:text-blue-200
+                          hover:file:bg-blue-100 dark:hover:file:bg-blue-900/30"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFormDataChange(key, file.name);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <input
+                        type={property.format === 'password' ? 'password' : 'text'}
+                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm"
+                        value={formData[key] || ''}
+                        onChange={(e) => handleFormDataChange(key, e.target.value)}
+                        placeholder={property.description || `Enter ${key}`}
+                      />
+                    )}
+                    {property.description && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {property.description}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-4">
+            <div className="relative">
+              <textarea
+                className="w-full h-64 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm font-mono"
+                value={requestBody || ''}
+                onChange={(e) => setRequestBody(e.target.value)}
+                placeholder={`Enter ${selectedContentType} request body`}
+              />
+            </div>
+          </div>
+        );
+    }
+  };
+
+  // Update request body when sending request
   const handleSendRequest = async () => {
+    // Prepare request body based on content type
+    let finalRequestBody: string | FormData | undefined;
+    
+    if (selectedContentType === 'multipart/form-data') {
+      const formDataObj = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataObj.append(key, value);
+      });
+      finalRequestBody = formDataObj;
+    } else if (selectedContentType === 'application/x-www-form-urlencoded') {
+      const params = new URLSearchParams();
+      Object.entries(formData).forEach(([key, value]) => {
+        params.append(key, value);
+      });
+      finalRequestBody = params.toString();
+    } else {
+      finalRequestBody = requestBody;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -322,7 +456,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       });
 
       // Get current request body or generate from schema if not set
-      let currentBody = requestBody;
+      let currentBody = finalRequestBody;
       if (!currentBody && endpoint.requestBody?.content?.['application/json']?.schema) {
         const schema = endpoint.requestBody.content['application/json'].schema;
         const resolvedSchema = resolveSchema(schema, spec);
@@ -405,7 +539,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             {requiresAuth.length > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-full group relative">
                 <svg className="h-3.5 w-3.5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 015 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 1a4.5 4.5 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" clipRule="evenodd" />
                 </svg>
                 <span>Auth Required</span>
 
@@ -486,126 +620,18 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
                 <div className={endpoint.requestBody ? "" : "lg:col-span-2"}>
                   <div className="space-y-4">
                     {/* Headers */}
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Headers</h3>
-                      <div className="space-y-1.5">
-                        {headers.map((header, index) => (
-                          <div key={index} className="flex items-center gap-1.5">
-                            <input
-                              type="text"
-                              value={header.key}
-                              onChange={(e) => {
-                                setHeaders(prev => {
-                                  const newHeaders = [...prev];
-                                  newHeaders[index].key = e.target.value;
-                                  return newHeaders;
-                                });
-                              }}
-                              placeholder="Key"
-                              className="block w-1/2 rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 py-1"
-                            />
-                            <input
-                              type="text"
-                              value={header.value}
-                              onChange={(e) => {
-                                setHeaders(prev => {
-                                  const newHeaders = [...prev];
-                                  newHeaders[index].value = e.target.value;
-                                  return newHeaders;
-                                });
-                              }}
-                              placeholder="Value"
-                              className="block w-1/2 rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 py-1"
-                            />
-                            <button
-                              onClick={() => {
-                                setHeaders(prev => prev.filter((h, i) => i !== index));
-                              }}
-                              className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                            >
-                              <XMarkIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => {
-                          setHeaders(prev => [...prev, { key: '', value: '' }]);
-                        }}
-                        className="mt-1.5 inline-flex items-center px-2 py-1 text-xs font-medium rounded text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
-                      >
-                        <PlusIcon className="h-3.5 w-3.5 mr-1" />
-                        Add Header
-                      </button>
-                    </div>
-
-                    {/* Query Parameters */}
-                    {endpoint.parameters?.some(param => param.in === 'query') && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Query Parameters</h3>
-                        <div className="space-y-1.5">
-                          {endpoint.parameters
-                            .filter(param => param.in === 'query')
-                            .map((param, index) => (
-                              <div key={index} className="flex items-center gap-1.5">
-                                <input
-                                  type="text"
-                                  value={param.name}
-                                  disabled
-                                  className="block w-1/2 rounded-md border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm py-1"
-                                />
-                                <input
-                                  type="text"
-                                  value={queryParams[param.name] || ''}
-                                  onChange={(e) => setQueryParams(prev => ({ ...prev, [param.name]: e.target.value }))}
-                                  placeholder={param.required ? 'Required' : 'Optional'}
-                                  className="block w-1/2 rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 py-1"
-                                />
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                    <Headers 
+                      headers={headers}
+                      onHeaderChange={handleHeaderChange}
+                    />
                   </div>
                 </div>
 
                 {/* Request Body Section */}
                 {endpoint.requestBody && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Request Body</h3>
-                    <JsonEditor
-                      value={(() => {
-                        try {
-                          if (requestBody) {
-                            return typeof requestBody === 'string'
-                              ? requestBody
-                              : JSON.stringify(requestBody, null, 2);
-                          }
-
-                          const schema = endpoint.requestBody.content?.['application/json']?.schema;
-                          if (!schema) return '{}';
-
-                          const resolvedSchema = resolveSchema(schema, spec);
-                          const example = generateExampleFromSchema(resolvedSchema);
-                          if (!requestBody) {
-                            setRequestBody(example);
-                          }
-                          return JSON.stringify(example, null, 2);
-                        } catch (error) {
-                          console.error('Error preparing JSON:', error);
-                          return '{}';
-                        }
-                      })()}
-                      onChange={(value) => {
-                        try {
-                          const parsedJson = JSON.parse(value);
-                          setRequestBody(parsedJson);
-                        } catch {
-                          setRequestBody(value);
-                        }
-                      }}
-                      height="400px"
-                    />
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Request Body</h3>
+                    {renderRequestBody()}
                   </div>
                 )}
               </div>
