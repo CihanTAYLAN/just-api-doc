@@ -16,9 +16,10 @@ export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Request Body</h3>
+      <div className="mt-2 space-y-2">
         {children}
-      </h3>
+      </div>
     </div>
   );
 };

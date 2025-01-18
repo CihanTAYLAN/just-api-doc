@@ -26,6 +26,33 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [headers, setHeaders] = useState<{ key: string; value: string }[]>(() => {
+    try {
+      const savedHeaders = localStorage.getItem('api-doc-headers');
+      if (savedHeaders) {
+        const parsedHeaders = JSON.parse(savedHeaders);
+        if (Array.isArray(parsedHeaders) && parsedHeaders.length > 0) {
+          return parsedHeaders;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading headers from localStorage:', error);
+    }
+    return [{ key: 'Content-Type', value: 'application/json' }];
+  });
+
+  // Header değişikliklerini yönet
+  const handleHeadersChange = useCallback((newHeaders: { key: string; value: string }[]) => {
+    // Gelen header'ları doğrula
+    const validHeaders = newHeaders.filter(h => h.key && typeof h.key === 'string');
+    
+    setHeaders(validHeaders);
+    try {
+      localStorage.setItem('api-doc-headers', JSON.stringify(validHeaders));
+    } catch (error) {
+      console.error('Error saving headers to localStorage:', error);
+    }
+  }, []);
 
   // URL'den endpoint ve grup bilgisini yükle
   useEffect(() => {
@@ -364,10 +391,12 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
         {selectedEndpoint ? (
           <div className="h-full px-2 sm:px-4 md:px-6 py-5">
             <EndpointDetail
-              endpoint={selectedEndpoint.endpoint}
               path={selectedEndpoint.path}
               method={selectedEndpoint.method}
+              endpoint={selectedEndpoint.endpoint}
               spec={spec}
+              headers={headers}
+              onHeadersChange={handleHeadersChange}
             />
           </div>
         ) : (

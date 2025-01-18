@@ -17,24 +17,21 @@ interface EndpointDetailProps {
   method: string;
   endpoint: ApiEndpoint;
   spec: ApiSpec;
+  headers: { key: string; value: string }[];
+  onHeadersChange: (headers: { key: string; value: string }[]) => void;
 }
 
 export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   path,
   method,
   endpoint,
-  spec
+  spec,
+  headers,
+  onHeadersChange
 }) => {
   const { theme } = useTheme();
   const [selectedServer, setSelectedServer] = useState(spec.servers?.[0]?.url || '');
   const [requestBody, setRequestBody] = useState<any>(null);
-  const [headers, setHeaders] = useState<{ key: string; value: string }[]>(() => {
-    const initialHeaders = [{ key: 'Content-Type', value: 'application/json' }];
-    if (endpoint.security?.length) {
-      initialHeaders.push({ key: 'Authorization', value: '' });
-    }
-    return initialHeaders;
-  });
   const [queryParams, setQueryParams] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'try' | 'code'>('try');
   const [loading, setLoading] = useState(false);
@@ -45,33 +42,21 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const [selectedContentType, setSelectedContentType] = useState<string>('');
   const [formData, setFormData] = useState<Record<string, string>>({});
 
+  // Header'lar değiştiğinde localStorage'a kaydet
+  useEffect(() => {
+    try {
+      localStorage.setItem('api-doc-headers', JSON.stringify(headers));
+    } catch (error) {
+      console.error('Error saving headers to localStorage:', error);
+    }
+  }, [headers]);
+
   // Reset state when endpoint changes
   useEffect(() => {
     setResponse(null);
     setError(null);
     setQueryParams({});
     setRequestBody(null);
-    setHeaders(() => {
-      const initialHeaders = [{ key: 'Content-Type', value: 'application/json' }];
-      if (endpoint.security?.length) {
-        initialHeaders.push({ key: 'Authorization', value: '' });
-      }
-      return initialHeaders;
-    });
-
-    // Set initial content type if request body exists
-    if (endpoint.requestBody?.content) {
-      const contentTypes = Object.keys(endpoint.requestBody.content);
-      if (contentTypes.length > 0) {
-        // Prefer application/json if available, otherwise use the first content type
-        const preferredType = contentTypes.includes('application/json') 
-          ? 'application/json' 
-          : contentTypes[0];
-        setSelectedContentType(preferredType);
-      }
-    } else {
-      setSelectedContentType('');
-    }
   }, [endpoint]);
 
   // Get default value for a parameter based on its schema
@@ -133,76 +118,39 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     };
   }, [endpoint.requestBody]);
 
-  // Handle header changes
-  const handleHeaderChange = useCallback((newHeaders: Array<{ key: string; value: string }>) => {
-    // Content-Type header'ını koru
-    const contentTypeHeader = headers.find(h => h.key.toLowerCase() === 'content-type');
-    if (contentTypeHeader && !newHeaders.some(h => h.key.toLowerCase() === 'content-type')) {
-      newHeaders.unshift(contentTypeHeader);
-    }
-    setHeaders(newHeaders);
-    updateHeaderValues(newHeaders);
-  }, [headers, updateHeaderValues]);
+  // Handle form data changes
+  const handleFormDataChange = (key: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
-  // Initialize headers with security schemes and default parameters
+  // Header'ları endpoint'e göre düzenle
   useEffect(() => {
-    const defaultHeaders: { key: string; value: string }[] = [];
+    const currentHeaders = new Map(headers.map(h => [h.key.toLowerCase(), h]));
+    const newHeaders = [...headers];
+    let hasChanges = false;
 
-    // First, add Content-Type header if exists
-    const contentTypeHeader = getContentTypeHeader();
-    if (contentTypeHeader) {
-      defaultHeaders.push(contentTypeHeader);
+    // Content-Type kontrolü
+    if (!currentHeaders.has('content-type')) {
+      newHeaders.unshift({ key: 'Content-Type', value: 'application/json' });
+      hasChanges = true;
     }
 
-    // Then add security-related headers
-    securitySchemes.forEach(scheme => {
-      if (scheme.in === 'header') {
-        let headerKey: string;
-        let defaultValue: string;
+    // Authorization kontrolü
+    const hasAuth = currentHeaders.has('authorization');
+    if (endpoint.security?.length && !hasAuth) {
+      // Authorization gerekiyor ve yok
+      newHeaders.push({ key: 'Authorization', value: 'Bearer YOUR_ACCESS_TOKEN' });
+      hasChanges = true;
+    }
 
-        switch (scheme.type.toLowerCase()) {
-          case 'http':
-            headerKey = 'Authorization';
-            defaultValue = 'Bearer YOUR_TOKEN_HERE';
-            break;
-          case 'apikey':
-            headerKey = scheme.name;
-            defaultValue = 'YOUR_API_KEY_HERE';
-            break;
-          case 'oauth2':
-            headerKey = 'Authorization';
-            defaultValue = 'Bearer YOUR_OAUTH_TOKEN_HERE';
-            break;
-          default:
-            return;
-        }
-
-        const existingHeader = defaultHeaders.find(h => h.key.toLowerCase() === headerKey.toLowerCase());
-        if (!existingHeader) {
-          defaultHeaders.push({
-            key: headerKey,
-            value: defaultValue
-          });
-        }
-      }
-    });
-
-    // Finally add headers from parameters
-    endpoint.parameters?.forEach(param => {
-      if (param.in === 'header') {
-        const existingHeader = defaultHeaders.find(h => h.key.toLowerCase() === param.name.toLowerCase());
-        if (!existingHeader) {
-          defaultHeaders.push({
-            key: param.name,
-            value: getDefaultValueForParameter(param)
-          });
-        }
-      }
-    });
-
-    setHeaders(defaultHeaders);
-    updateHeaderValues(defaultHeaders);
-  }, [endpoint, securitySchemes, getContentTypeHeader, getDefaultValueForParameter, updateHeaderValues]);
+    // Sadece değişiklik varsa güncelle
+    if (hasChanges) {
+      onHeadersChange(newHeaders);
+    }
+  }, [endpoint.security?.length]); // Sadece security requirement değiştiğinde çalış
 
   // Update header values when headers change
   useEffect(() => {
@@ -281,30 +229,27 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   }, [endpoint.requestBody, spec, requestBody]);
 
+  // Set initial content type when endpoint changes
+  useEffect(() => {
+    if (endpoint.requestBody?.content) {
+      const contentTypes = Object.keys(endpoint.requestBody.content);
+      if (contentTypes.length > 0) {
+        // Prefer application/json if available, otherwise use the first content type
+        const preferredType = contentTypes.includes('application/json')
+          ? 'application/json'
+          : contentTypes[0];
+        setSelectedContentType(preferredType);
+      }
+    } else {
+      setSelectedContentType('');
+    }
+  }, [endpoint.requestBody]);
+
   // Get available content types
   const contentTypes = useMemo(() => {
     if (!endpoint.requestBody?.content) return [];
     return Object.keys(endpoint.requestBody.content);
   }, [endpoint.requestBody]);
-
-  // Initialize content type
-  useEffect(() => {
-    if (contentTypes.length > 0) {
-      // Prefer application/json if available
-      const defaultType = contentTypes.includes('application/json')
-        ? 'application/json'
-        : contentTypes[0];
-      setSelectedContentType(defaultType);
-    }
-  }, [contentTypes]);
-
-  // Handle form data changes
-  const handleFormDataChange = (key: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
 
   // Render request body based on content type
   const renderRequestBody = useMemo(() => {
@@ -340,24 +285,20 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         })();
 
         return (
-          <div className="space-y-4">
-            <div className="relative">
-              <JsonEditor
-                value={jsonValue}
-                onChange={(value) => {
-                  try {
-                    // Only parse if it's valid JSON
-                    JSON.parse(value);
-                    setRequestBody(value);
-                  } catch {
-                    // If not valid JSON, still update but don't parse
-                    setRequestBody(value);
-                  }
-                }}
-                height="400px"
-              />
-            </div>
-          </div>
+          <JsonEditor
+            value={jsonValue}
+            onChange={(value) => {
+              try {
+                // Only parse if it's valid JSON
+                JSON.parse(value);
+                setRequestBody(value);
+              } catch {
+                // If not valid JSON, still update but don't parse
+                setRequestBody(value);
+              }
+            }}
+            height="400px"
+          />
         );
 
       case 'multipart/form-data':
@@ -542,7 +483,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             {endpoint.deprecated && (
               <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-full group relative">
                 <svg className="h-3.5 w-3.5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M3.25 4A.75.75 0 012.5 3.25v-1.5a.75.75 0 011.5 0v1.5A.75.75 0 013.25 4zm13.5 0a.75.75 0 01-.75-.75v-1.5a.75.75 0 011.5 0v1.5a.75.75 0 01-.75.75zm-8-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0v-1.5zM5 4.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5A.75.75 0 015 4.25zm7 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5a.75.75 0 01.75-.75zM4.25 17a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm11.5 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm-8-1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0v1.5zm-.75 3.75a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm8 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75z" />
+                  <path d="M3.25 4A.75.75 0 012.5 3.25v-1.5a.75.75 0 011.5 0v1.5A.75.75 0 013.25 4zm13.5 0a.75.75 0 01-.75-.75v-1.5a.75.75 0 011.5 0v1.5a.75.75 0 01-.75.75zm-8-1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0v1.5zM5 4.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5A.75.75 0 015 4.25zm7 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5a.75.75 0 01.75-.75zM4.25 17a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm11.5 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm-8-1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0v1.5zm-.75 3.75a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm8 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75z" />
                 </svg>
                 <span>Deprecated</span>
 
@@ -640,14 +581,11 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
               {/* Headers and Body Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Headers Section */}
-                <div className={endpoint.requestBody ? "" : "lg:col-span-2"}>
-                  <div className="space-y-4">
-                    {/* Headers */}
-                    <Headers
-                      headers={headers}
-                      onHeaderChange={handleHeaderChange}
-                    />
-                  </div>
+                <div className="space-y-4">
+                  <Headers
+                    headers={headers}
+                    onHeaderChange={onHeadersChange}
+                  />
                 </div>
 
                 {/* Request Body Section */}
