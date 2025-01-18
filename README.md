@@ -83,20 +83,20 @@ npm run dev
 
 Here are some screenshots showcasing the platform's interface and features:
 
-### Dashboard View
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/Screenshot%202025-01-18%20at%2012.54.48%20AM.png" alt="Dashboard View" />
+### Register Page
+![Register Page](screen-images/register.png)
 
-### API Documentation Creation
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/Screenshot%202025-01-18%20at%2012.55.06%20AM.png" alt="API Documentation Creation" />
+### Dashboard View
+![Dashboard View](screen-images/dashboard.png)
+
+### Create New Documentation
+![Create New Documentation](screen-images/create-new.png)
+
+### Dashboard with Documentation
+![Dashboard with Documentation](screen-images/dashboard-2.png)
 
 ### API Documentation View
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/Screenshot%202025-01-18%20at%2012.55.16%20AM.png" alt="API Documentation View" />
-
-### Access Control Settings
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/Screenshot%202025-01-18%20at%2012.55.39%20AM.png" alt="Access Control Settings" />
-
-### Documentation Management
-<img src="https://raw.githubusercontent.com/cihanTAYLAN/just-api-doc/main/screen-images/Screenshot%202025-01-18%20at%2012.57.47%20AM.png" alt="Documentation Management" />
+![API Documentation View](screen-images/api-doc.png)
 
 ## Contributing
 
