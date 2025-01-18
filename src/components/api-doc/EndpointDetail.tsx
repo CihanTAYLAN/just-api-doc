@@ -151,13 +151,13 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         });
       }
 
-      // Add required headers from parameters
+      // Add headers from parameters
       endpoint.parameters?.forEach(param => {
-        if (param.in === 'header' && param.required) {
+        if (param.in === 'header') {
           defaultHeaders.push({
             key: param.name,
             value: '',
-            required: true
+            required: param.required || false
           });
         }
       });
