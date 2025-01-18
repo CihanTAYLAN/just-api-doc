@@ -36,12 +36,13 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const [securitySchemes, setSecuritySchemes] = useState<Array<{ type: string; name: string; in: string }>>([]);
   const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
 
-  // Reset non-header state when endpoint changes
+  // Reset state when endpoint changes
   useEffect(() => {
     setResponse(null);
     setError(null);
     setQueryParams({});
     setRequestBody(null);
+    setHeaders([]); // Reset headers when endpoint changes
   }, [endpoint.path, endpoint.method]);
 
   // Store header values when they change
@@ -142,21 +143,17 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         }
 
         const savedValue = headerValues[headerKey.toLowerCase()];
-        const existingHeader = headers.find(h => h.key.toLowerCase() === headerKey.toLowerCase());
-        if (!existingHeader) {
-          defaultHeaders.push({
-            key: headerKey,
-            value: savedValue || defaultValue
-          });
-        }
+        defaultHeaders.push({
+          key: headerKey,
+          value: savedValue || defaultValue
+        });
       }
     });
 
     // Finally add headers from parameters
     endpoint.parameters?.forEach(param => {
       if (param.in === 'header') {
-        const existingHeader = headers.find(h => h.key.toLowerCase() === param.name.toLowerCase()) ||
-                             defaultHeaders.find(h => h.key.toLowerCase() === param.name.toLowerCase());
+        const existingHeader = defaultHeaders.find(h => h.key.toLowerCase() === param.name.toLowerCase());
         if (!existingHeader) {
           const savedValue = headerValues[param.name.toLowerCase()];
           defaultHeaders.push({
@@ -167,10 +164,29 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       }
     });
 
-    // Only set headers if we don't have any existing headers
-    if (headers.length === 0) {
-      setHeaders(defaultHeaders);
+    // Get saved custom headers
+    const savedHeaders = localStorage.getItem('api-headers');
+    let customHeaders: Array<{ key: string; value: string }> = [];
+    if (savedHeaders) {
+      try {
+        customHeaders = JSON.parse(savedHeaders);
+      } catch (error) {
+        console.error('Error parsing saved headers:', error);
+      }
     }
+
+    // Merge default headers with custom headers, giving priority to custom headers
+    const mergedHeaders = [...defaultHeaders];
+    customHeaders.forEach(customHeader => {
+      const existingIndex = mergedHeaders.findIndex(h => h.key.toLowerCase() === customHeader.key.toLowerCase());
+      if (existingIndex !== -1) {
+        mergedHeaders[existingIndex] = customHeader;
+      } else {
+        mergedHeaders.push(customHeader);
+      }
+    });
+
+    setHeaders(mergedHeaders);
   }, [securitySchemes, endpoint.parameters, endpoint.requestBody, endpoint.path, endpoint.method, headerValues]);
 
   // Update header values when headers change
