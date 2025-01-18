@@ -6,8 +6,13 @@ import { ApiDocViewerProps, ApiEndpoint, ApiSpec } from './types';
 import { fetchApiSpec } from './utils';
 import { Sidebar } from './Sidebar';
 import { EndpointDetail } from './EndpointDetail';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [spec, setSpec] = useState<ApiSpec | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,10 +25,57 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [isResizing, setIsResizing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  // URL'den endpoint ve grup bilgisini yükle
+  useEffect(() => {
+    if (!spec?.paths || !isInitialLoad) return;
+
+    const path = searchParams.get('path');
+    const method = searchParams.get('method')?.toLowerCase();
+    const group = searchParams.get('group');
+
+    // Endpoint varsa yükle
+    if (path && method && spec.paths[path]?.[method]) {
+      const endpoint = spec.paths[path][method] as ApiEndpoint;
+      const tag = endpoint.tags?.[0] || 'Other';
+      
+      setSelectedEndpoint({ path, method, endpoint });
+      setOpenGroups(prev => ({ ...prev, [tag]: true }));
+    }
+
+    // Grup varsa aç
+    if (group) {
+      setOpenGroups(prev => ({ ...prev, [group]: true }));
+    }
+
+    setIsInitialLoad(false);
+  }, [spec, searchParams, isInitialLoad]);
+
+  // URL'i sessizce güncelle
+  const updateUrlSilently = useCallback((params: { path?: string; method?: string; group?: string }) => {
+    const urlParams = new URLSearchParams(searchParams.toString());
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        urlParams.set(key, value);
+      } else {
+        urlParams.delete(key);
+      }
+    });
+
+    const newUrl = `${pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+    if (window.location.search !== `?${urlParams.toString()}`) {
+      window.history.replaceState(null, '', newUrl);
+    }
+  }, [pathname, searchParams]);
+
+  // API spec'i yükle
   useEffect(() => {
     const loadSpec = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const data = await fetchApiSpec(apiDoc);
         setSpec(data);
       } catch (err) {
@@ -36,6 +88,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     loadSpec();
   }, [apiDoc]);
 
+  // Mouse hareketlerini izle
   useEffect(() => {
     if (!isResizing) return;
 
@@ -64,8 +117,19 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   }, []);
 
   const toggleGroup = useCallback((name: string) => {
-    setOpenGroups(prev => ({ ...prev, [name]: !prev[name] }));
-  }, []);
+    setOpenGroups(prev => {
+      const newState = { ...prev, [name]: !prev[name] };
+      
+      // Grup durumu değiştiğinde URL'i sessizce güncelle
+      if (newState[name]) {
+        updateUrlSilently({ group: name });
+      } else {
+        updateUrlSilently({ group: undefined });
+      }
+      
+      return newState;
+    });
+  }, [updateUrlSilently]);
 
   const handleEndpointSelect = useCallback((endpoint: {
     path: string;
@@ -73,11 +137,31 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     endpoint: ApiEndpoint;
   }) => {
     setSelectedEndpoint(endpoint);
-  }, []);
+    
+    // Endpoint seçildiğinde URL'i sessizce güncelle
+    const currentGroup = searchParams.get('group');
+    updateUrlSilently({
+      path: endpoint.path,
+      method: endpoint.method,
+      group: currentGroup || endpoint.endpoint.tags?.[0] || 'Other'
+    });
+
+    // Endpoint'in tag'ini otomatik olarak aç
+    if (endpoint.endpoint.tags?.[0]) {
+      setOpenGroups(prev => ({ ...prev, [endpoint.endpoint.tags[0]]: true }));
+    }
+  }, [searchParams, updateUrlSilently]);
 
   const handleOverviewSelect = useCallback(() => {
     setSelectedEndpoint(null);
-  }, []);
+    // Overview seçildiğinde URL'i sessizce güncelle
+    const currentGroup = searchParams.get('group');
+    updateUrlSilently({
+      path: undefined,
+      method: undefined,
+      group: currentGroup
+    });
+  }, [searchParams, updateUrlSilently]);
 
   const groupedEndpoints = useMemo(() => {
     if (!spec?.paths) return {};
