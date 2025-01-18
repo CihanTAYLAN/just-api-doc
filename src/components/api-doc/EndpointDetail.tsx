@@ -41,6 +41,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
   const [selectedContentType, setSelectedContentType] = useState<string>('');
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [pathParams, setPathParams] = useState<Record<string, string>>({});
 
   // Header'lar değiştiğinde localStorage'a kaydet
   useEffect(() => {
@@ -98,26 +99,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     setHeaderValues(newHeaderValues);
   }, []);
 
-  // Get Content-Type header based on request body
-  const getContentTypeHeader = useCallback(() => {
-    if (!endpoint.requestBody) {
-      return null;
-    }
-
-    let contentType = 'application/json';
-    if (endpoint.requestBody.content) {
-      const contentTypes = Object.keys(endpoint.requestBody.content);
-      if (contentTypes.length > 0) {
-        contentType = contentTypes[0];
-      }
-    }
-
-    return {
-      key: 'Content-Type',
-      value: contentType
-    };
-  }, [endpoint.requestBody]);
-
   // Handle form data changes
   const handleFormDataChange = (key: string, value: string) => {
     setFormData(prev => ({
@@ -129,19 +110,23 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   // Header'ları endpoint'e göre düzenle
   useEffect(() => {
     const currentHeaders = new Map(headers.map(h => [h.key.toLowerCase(), h]));
-    const newHeaders = [...headers];
+    const newHeaders = [...headers].filter(h => h.key.toLowerCase() !== 'content-type');
     let hasChanges = false;
 
     // Content-Type kontrolü
-    if (!currentHeaders.has('content-type')) {
-      newHeaders.unshift({ key: 'Content-Type', value: 'application/json' });
-      hasChanges = true;
+    if (endpoint.requestBody?.content) {
+      const contentTypes = Object.keys(endpoint.requestBody.content);
+      if (contentTypes.length > 0) {
+        const contentType = contentTypes[0];
+        newHeaders.unshift({ key: 'Content-Type', value: contentType });
+        setSelectedContentType(contentType);
+        hasChanges = true;
+      }
     }
 
     // Authorization kontrolü
     const hasAuth = currentHeaders.has('authorization');
     if (endpoint.security?.length && !hasAuth) {
-      // Authorization gerekiyor ve yok
       newHeaders.push({ key: 'Authorization', value: 'Bearer YOUR_ACCESS_TOKEN' });
       hasChanges = true;
     }
@@ -150,7 +135,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     if (hasChanges) {
       onHeadersChange(newHeaders);
     }
-  }, [endpoint.security?.length]); // Sadece security requirement değiştiğinde çalış
+  }, [endpoint, endpoint.security?.length]); // endpoint değiştiğinde de çalış
 
   // Update header values when headers change
   useEffect(() => {
@@ -403,6 +388,15 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         throw new Error('Server URL is required');
       }
 
+      // Validate required path parameters
+      const missingPathParams = endpoint.parameters
+        ?.filter(param => param.in === 'path' && param.required && !pathParams[param.name])
+        .map(param => param.name);
+
+      if (missingPathParams && missingPathParams.length > 0) {
+        throw new Error(`Missing required path parameters: ${missingPathParams.join(', ')}`);
+      }
+
       // Prepare headers
       const headersObj = headers.reduce((acc, h) => {
         if (h.key.trim() && h.value.trim()) {
@@ -411,8 +405,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         return acc;
       }, {} as Record<string, string>);
 
-      // Prepare URL with query parameters
-      const url = new URL(`${selectedServer}${path}`);
+      // Prepare URL with path parameters and query parameters
+      const url = new URL(`${selectedServer}${getUrlWithPathParams(path)}`);
       Object.entries(queryParams).forEach(([key, value]) => {
         if (key.trim() && value.trim()) {
           url.searchParams.append(key.trim(), value.trim());
@@ -469,6 +463,34 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  // Initialize path parameters from OpenAPI spec
+  useEffect(() => {
+    const defaultPathParams: Record<string, string> = {};
+    endpoint.parameters?.forEach(param => {
+      if (param.in === 'path') {
+        defaultPathParams[param.name] = '';
+      }
+    });
+    setPathParams(defaultPathParams);
+  }, [endpoint.parameters]);
+
+  // Function to replace path parameters in URL
+  const getUrlWithPathParams = useCallback((urlPath: string) => {
+    let finalUrl = urlPath;
+    Object.entries(pathParams).forEach(([key, value]) => {
+      finalUrl = finalUrl.replace(`{${key}}`, encodeURIComponent(value || `{${key}}`));
+    });
+    return finalUrl;
+  }, [pathParams]);
+
+  // Handle path parameter changes
+  const handlePathParamChange = (paramName: string, value: string) => {
+    setPathParams(prev => ({
+      ...prev,
+      [paramName]: value
+    }));
   };
 
   return (
@@ -571,10 +593,43 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
                 servers={spec.servers || []}
                 selectedServer={selectedServer}
                 onServerChange={setSelectedServer}
-                path={path}
+                path={getUrlWithPathParams(path)}
                 method={method}
               />
             </div>
+
+            {/* Path Parameters Section */}
+            {endpoint.parameters?.some(param => param.in === 'path') && (
+              <div className="py-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Path Parameters:</span>
+                  {endpoint.parameters
+                    .filter(param => param.in === 'path')
+                    .map(param => (
+                      <div key={param.name} className="flex items-center gap-2 min-w-[200px] group">
+                        <label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1 whitespace-nowrap">
+                          {param.name}
+                          {param.required && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={pathParams[param.name] || ''}
+                          onChange={(e) => handlePathParamChange(param.name, e.target.value)}
+                          placeholder={param.description || param.name}
+                          className="flex-1 text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 
+                                   focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 
+                                   dark:bg-gray-800 dark:text-gray-100"
+                        />
+                        {param.description && (
+                          <div className="hidden group-hover:block absolute bg-gray-800 text-white text-xs rounded p-2 z-10 mt-1 -translate-y-12">
+                            {param.description}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
 
             {/* Request Configuration Section */}
             <div className="py-4">
