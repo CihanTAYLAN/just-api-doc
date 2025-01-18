@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import axios from 'axios';
 import { ApiEndpoint, ApiSpec } from './types';
+import { ApiDoc } from '@prisma/client';
 import { MethodBadge } from './MethodBadge';
 import { EndpointUrlBar } from './EndpointUrlBar';
 import { CodeSamples } from './CodeSamples';
@@ -17,8 +18,9 @@ interface EndpointDetailProps {
   method: string;
   endpoint: ApiEndpoint;
   spec: ApiSpec;
-  headers: { key: string; value: string }[];
-  onHeadersChange: (headers: { key: string; value: string }[]) => void;
+  apiDoc: ApiDoc;
+  headers?: Array<{ key: string; value: string; required?: boolean }>;
+  onHeadersChange?: (headers: Array<{ key: string; value: string; required?: boolean }>) => void;
 }
 
 export const EndpointDetail: React.FC<EndpointDetailProps> = ({
@@ -26,6 +28,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   method,
   endpoint,
   spec,
+  apiDoc,
   headers,
   onHeadersChange
 }) => {
@@ -42,15 +45,17 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const [selectedContentType, setSelectedContentType] = useState<string>('');
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [pathParams, setPathParams] = useState<Record<string, string>>({});
+  const [localHeaders, setLocalHeaders] = useState<Array<{ key: string; value: string; required?: boolean }>>(headers || []);
 
   // Header'lar değiştiğinde localStorage'a kaydet
   useEffect(() => {
     try {
-      localStorage.setItem('api-doc-headers', JSON.stringify(headers));
+      const storageKey = `headers-${apiDoc?.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(localHeaders));
     } catch (error) {
       console.error('Error saving headers to localStorage:', error);
     }
-  }, [headers]);
+  }, [localHeaders, apiDoc?.id]);
 
   // Reset state when endpoint changes
   useEffect(() => {
@@ -91,7 +96,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   }, []);
 
   // Store header values when they change
-  const updateHeaderValues = useCallback((headers: Array<{ key: string; value: string }>) => {
+  const updateHeaderValues = useCallback((headers: Array<{ key: string; value: string; required?: boolean }>) => {
     const newHeaderValues: Record<string, string> = {};
     headers.forEach(header => {
       newHeaderValues[header.key.toLowerCase()] = header.value;
@@ -107,10 +112,124 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }));
   };
 
+  // Initialize headers when endpoint changes
+  useEffect(() => {
+    const initializeHeaders = () => {
+      const defaultHeaders: Array<{ key: string; value: string; required?: boolean }> = [];
+
+      // Add Content-Type header if endpoint has request body
+      if (endpoint.requestBody?.content) {
+        const contentTypes = Object.keys(endpoint.requestBody.content);
+        if (contentTypes.length > 0) {
+          defaultHeaders.push({
+            key: 'Content-Type',
+            value: contentTypes[0],
+            required: true
+          });
+        }
+      }
+
+      // Add required headers from security schemes
+      if (endpoint.security?.length) {
+        endpoint.security.forEach(securityRequirement => {
+          Object.keys(securityRequirement).forEach(schemeName => {
+            const scheme = spec.components?.securitySchemes?.[schemeName];
+            if (scheme?.type === 'apiKey' && scheme.in === 'header') {
+              defaultHeaders.push({
+                key: scheme.name,
+                value: '',
+                required: true
+              });
+            } else if (scheme?.type === 'http' && scheme.scheme === 'bearer') {
+              defaultHeaders.push({
+                key: 'Authorization',
+                value: 'Bearer ',
+                required: true
+              });
+            }
+          });
+        });
+      }
+
+      // Add required headers from parameters
+      endpoint.parameters?.forEach(param => {
+        if (param.in === 'header' && param.required) {
+          defaultHeaders.push({
+            key: param.name,
+            value: '',
+            required: true
+          });
+        }
+      });
+
+      // Load saved headers from localStorage
+      const storageKey = `headers-${apiDoc?.id}`;
+      const storedHeaders = localStorage.getItem(storageKey);
+      let savedHeaders: Array<{ key: string; value: string; required?: boolean }> = [];
+
+      if (storedHeaders) {
+        try {
+          savedHeaders = JSON.parse(storedHeaders);
+        } catch (error) {
+          console.error('Error parsing stored headers:', error);
+        }
+      }
+
+      // Merge required headers with saved headers
+      const mergedHeaders = defaultHeaders.map(header => {
+        const savedHeader = savedHeaders.find(h => h.key.toLowerCase() === header.key.toLowerCase());
+        return savedHeader ? { ...header, value: savedHeader.value } : header;
+      });
+
+      // Add non-required saved headers
+      savedHeaders.forEach(header => {
+        if (!mergedHeaders.some(h => h.key.toLowerCase() === header.key.toLowerCase())) {
+          mergedHeaders.push(header);
+        }
+      });
+
+      setLocalHeaders(mergedHeaders);
+    };
+
+    initializeHeaders();
+  }, [endpoint, spec, path, apiDoc?.id]);
+
+  // Update Content-Type header when content type changes
+  useEffect(() => {
+    if (selectedContentType) {
+      setLocalHeaders(prevHeaders =>
+        prevHeaders.map(header =>
+          header.key.toLowerCase() === 'content-type'
+            ? { ...header, value: selectedContentType }
+            : header
+        )
+      );
+    }
+  }, [selectedContentType]);
+
+  // Handle header changes
+  const handleHeaderChange = (newHeaders: Array<{ key: string; value: string; required?: boolean }>) => {
+    // Ensure Content-Type header is preserved if it exists
+    const contentTypeHeader = localHeaders.find(h => h.key.toLowerCase() === 'content-type');
+    if (contentTypeHeader && !newHeaders.some(h => h.key.toLowerCase() === 'content-type')) {
+      newHeaders.unshift(contentTypeHeader);
+    }
+
+    setLocalHeaders(newHeaders);
+
+    // Save to localStorage
+    const storageKey = `headers-${apiDoc?.id}`;
+    localStorage.setItem(storageKey, JSON.stringify(newHeaders));
+
+    if (onHeadersChange) {
+      onHeadersChange(newHeaders);
+    }
+  };
+
   // Header'ları endpoint'e göre düzenle
   useEffect(() => {
-    const currentHeaders = new Map(headers.map(h => [h.key.toLowerCase(), h]));
-    const newHeaders = [...headers].filter(h => h.key.toLowerCase() !== 'content-type');
+    const currentHeaders = new Map(localHeaders.map(h => [h.key.toLowerCase(), h]));
+    const newHeaders = [...localHeaders].filter(h => h.key.toLowerCase() !== 'content-type');
     let hasChanges = false;
 
     // Content-Type kontrolü
@@ -118,7 +237,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       const contentTypes = Object.keys(endpoint.requestBody.content);
       if (contentTypes.length > 0) {
         const contentType = contentTypes[0];
-        newHeaders.unshift({ key: 'Content-Type', value: contentType });
+        newHeaders.unshift({ key: 'Content-Type', value: contentType, required: true });
         setSelectedContentType(contentType);
         hasChanges = true;
       }
@@ -127,20 +246,20 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     // Authorization kontrolü
     const hasAuth = currentHeaders.has('authorization');
     if (endpoint.security?.length && !hasAuth) {
-      newHeaders.push({ key: 'Authorization', value: 'Bearer YOUR_ACCESS_TOKEN' });
+      newHeaders.push({ key: 'Authorization', value: 'Bearer YOUR_ACCESS_TOKEN', required: true });
       hasChanges = true;
     }
 
     // Sadece değişiklik varsa güncelle
     if (hasChanges) {
-      onHeadersChange(newHeaders);
+      setLocalHeaders(newHeaders);
     }
   }, [endpoint, endpoint.security?.length]); // endpoint değiştiğinde de çalış
 
   // Update header values when headers change
   useEffect(() => {
-    updateHeaderValues(headers);
-  }, [headers, updateHeaderValues]);
+    updateHeaderValues(localHeaders);
+  }, [localHeaders, updateHeaderValues]);
 
   // Initialize query parameters from OpenAPI spec
   useEffect(() => {
@@ -297,12 +416,10 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
               {Object.entries(properties).map(([key, prop]) => {
                 const property = prop as OpenAPIV3.SchemaObject;
                 return (
-                  <div key={key} className="flex flex-col gap-1">
-                    <label className="text-sm font-medium">
+                  <div key={key} className="flex items-center gap-2 min-w-[200px] group">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1 whitespace-nowrap">
                       {key}
-                      {schema.required?.includes(key) && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
+                      {schema.required?.includes(key) && <span className="text-red-500">*</span>}
                     </label>
                     {selectedContentType === 'multipart/form-data' && property.type === 'string' && property.format === 'binary' ? (
                       <input
@@ -331,9 +448,9 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
                       />
                     )}
                     {property.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="hidden group-hover:block absolute bg-gray-800 text-white text-xs rounded p-2 z-10 mt-1 -translate-y-12">
                         {property.description}
-                      </p>
+                      </div>
                     )}
                   </div>
                 );
@@ -398,7 +515,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       }
 
       // Prepare headers
-      const headersObj = headers.reduce((acc, h) => {
+      const headersObj = localHeaders.reduce((acc, h) => {
         if (h.key.trim() && h.value.trim()) {
           acc[h.key.trim()] = h.value.trim();
         }
@@ -467,7 +584,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
   // Load path parameters from localStorage
   useEffect(() => {
-    const storedParams = localStorage.getItem(`pathParams-${path}`);
+    const storedParams = localStorage.getItem(`pathParams-${apiDoc.id}`);
     if (storedParams) {
       try {
         const parsedParams = JSON.parse(storedParams);
@@ -481,14 +598,14 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   // Save path parameters to localStorage when they change
   useEffect(() => {
     if (Object.keys(pathParams).length > 0) {
-      localStorage.setItem(`pathParams-${path}`, JSON.stringify(pathParams));
+      localStorage.setItem(`pathParams-${apiDoc.id}`, JSON.stringify(pathParams));
     }
   }, [pathParams, path]);
 
   // Initialize path parameters from OpenAPI spec
   useEffect(() => {
     const defaultPathParams: Record<string, string> = {};
-    const storedParams = localStorage.getItem(`pathParams-${path}`);
+    const storedParams = localStorage.getItem(`pathParams-${apiDoc.id}`);
     let initialParams = {};
 
     if (storedParams) {
@@ -504,7 +621,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         defaultPathParams[param.name] = (initialParams as Record<string, string>)[param.name] || '';
       }
     });
-    
+
     setPathParams(defaultPathParams);
   }, [endpoint.parameters, path]);
 
@@ -524,7 +641,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       [paramName]: value
     };
     setPathParams(newParams);
-    localStorage.setItem(`pathParams-${path}`, JSON.stringify(newParams));
+    localStorage.setItem(`pathParams-${apiDoc.id}`, JSON.stringify(newParams));
   };
 
   return (
@@ -545,14 +662,14 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
                 {/* Tooltip */}
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 hidden group-hover:block z-10">
-                  <div className="bg-gray-900 text-white text-xs rounded p-2 shadow-lg">
+                  <div className="bg-gray-800 text-white text-xs rounded p-2 shadow-lg">
                     <div className="font-medium mb-1">Deprecated Endpoint</div>
                     <div className="text-gray-300">
                       This endpoint is deprecated and may be removed in future versions. Please consider using alternative endpoints.
                     </div>
                   </div>
                   {/* Tooltip Arrow */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+                  <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-800 rotate-45"></div>
                 </div>
               </div>
             )}
@@ -565,7 +682,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
                 {/* Tooltip */}
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 hidden group-hover:block z-10">
-                  <div className="bg-gray-900 text-white text-xs rounded p-2 shadow-lg">
+                  <div className="bg-gray-800 text-white text-xs rounded p-2 shadow-lg">
                     <div className="font-medium mb-1">Authentication Required</div>
                     <div className="text-gray-300">
                       {endpoint.security?.map((security, index) => {
@@ -580,7 +697,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
                     </div>
                   </div>
                   {/* Tooltip Arrow */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+                  <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-800 rotate-45"></div>
                 </div>
               </div>
             )}
@@ -672,8 +789,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
                 {/* Headers Section */}
                 <div className="space-y-4">
                   <Headers
-                    headers={headers}
-                    onHeaderChange={onHeadersChange}
+                    headers={localHeaders}
+                    onHeaderChange={handleHeaderChange}
                   />
                 </div>
 
@@ -738,7 +855,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             <CodeSamples
               method={method}
               url={`${selectedServer}${path}`}
-              headers={headers}
+              headers={localHeaders}
               body={requestBody}
             />
           </div>

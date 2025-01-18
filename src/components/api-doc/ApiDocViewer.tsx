@@ -26,33 +26,43 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [headers, setHeaders] = useState<{ key: string; value: string }[]>(() => {
+  const [headers, setHeaders] = useState<{ key: string; value: string; required?: boolean }[]>(() => {
     try {
-      const savedHeaders = localStorage.getItem('api-doc-headers');
+      const storageKey = `headers-${apiDoc.id}`;
+      const savedHeaders = localStorage.getItem(storageKey);
+      
       if (savedHeaders) {
         const parsedHeaders = JSON.parse(savedHeaders);
-        if (Array.isArray(parsedHeaders) && parsedHeaders.length > 0) {
+        if (Array.isArray(parsedHeaders) && parsedHeaders.length > 0 && 
+            parsedHeaders.every(h => typeof h === 'object' && 'key' in h && 'value' in h)) {
           return parsedHeaders;
         }
       }
     } catch (error) {
       console.error('Error loading headers from localStorage:', error);
     }
-    return [{ key: 'Content-Type', value: 'application/json' }];
+    
+    // Default headers with required Content-Type
+    return [{
+      key: 'Content-Type',
+      value: 'application/json',
+      required: true
+    }];
   });
 
   // Header değişikliklerini yönet
-  const handleHeadersChange = useCallback((newHeaders: { key: string; value: string }[]) => {
+  const handleHeadersChange = useCallback((newHeaders: { key: string; value: string; required?: boolean }[]) => {
     // Gelen header'ları doğrula
     const validHeaders = newHeaders.filter(h => h.key && typeof h.key === 'string');
     
     setHeaders(validHeaders);
     try {
-      localStorage.setItem('api-doc-headers', JSON.stringify(validHeaders));
+      const storageKey = `headers-${apiDoc.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(validHeaders));
     } catch (error) {
       console.error('Error saving headers to localStorage:', error);
     }
-  }, []);
+  }, [apiDoc]);
 
   // URL'den endpoint ve grup bilgisini yükle
   useEffect(() => {
@@ -395,6 +405,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
               method={selectedEndpoint.method}
               endpoint={selectedEndpoint.endpoint}
               spec={spec}
+              apiDoc={apiDoc}
               headers={headers}
               onHeadersChange={handleHeadersChange}
             />
