@@ -70,7 +70,7 @@
 	}
 
 	.min-h-screen-custom {
-		height: calc(100vh - 64px);
+		height: calc(100vh - 65px);
 	}
 }
 
