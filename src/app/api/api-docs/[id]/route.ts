@@ -34,7 +34,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 		});
 
 		if (!apiDoc) {
-			return new NextResponse("API Doc not found", { status: 404 });
+			return NextResponse.json({ error: "API Doc not found" }, { status: 404 });
 		}
 
 		if (!apiDoc.isPublic) {
@@ -43,66 +43,60 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 			if (!session?.user?.id || apiDoc.userId !== session.user.id) {
 				// Check access code if provided
 				if (apiDoc.accessCode && accessCode !== apiDoc.accessCode) {
-					return new NextResponse("Invalid access code", { status: 401 });
+					return NextResponse.json({ error: "Invalid access code" }, { status: 401 });
 				} else if (!apiDoc.accessCode) {
-					return new NextResponse("Unauthorized", { status: 401 });
+					return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 				}
 			}
 		}
 
 		return NextResponse.json(apiDoc);
 	} catch (error) {
-		return new NextResponse("Internal error", { status: 500 });
+		console.error("Error fetching API Doc:", error);
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 	}
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
 	try {
 		const session = await getServerSession(authOptions);
+
 		if (!session?.user?.id) {
-			return new NextResponse("Unauthorized", { status: 401 });
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const apiDoc = await prisma.apiDoc.findUnique({
 			where: {
-				id: (await params).id,
+				id: params.id,
 			},
 		});
 
 		if (!apiDoc) {
-			return new NextResponse("API Doc not found", { status: 404 });
+			return NextResponse.json({ error: "API Doc not found" }, { status: 404 });
 		}
 
 		if (apiDoc.userId !== session.user.id) {
-			return new NextResponse("Unauthorized", { status: 401 });
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const data = await req.json();
-
-		// Validate the request data using Zod
-		const validationResult = apiDocSchema.safeParse(data);
-
-		if (!validationResult.success) {
-			return NextResponse.json(
-				{
-					message: "Validation failed",
-					errors: validationResult.error.errors,
-				},
-				{ status: 400 }
-			);
-		}
+		const json = await req.json();
+		const body = apiDocSchema.parse(json);
 
 		const updatedApiDoc = await prisma.apiDoc.update({
 			where: {
-				id: (await params).id,
+				id: params.id,
 			},
-			data: validationResult.data,
+			data: body,
 		});
 
 		return NextResponse.json(updatedApiDoc);
 	} catch (error) {
-		console.error("Error updating API doc:", error);
-		return new NextResponse("Internal Server Error", { status: 500 });
+		if (error instanceof z.ZodError) {
+			return NextResponse.json({ error: error.errors }, { status: 400 });
+		}
+
+		console.error("Error updating API Doc:", error);
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 	}
 }
 
@@ -111,21 +105,21 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 		const session = await getServerSession(authOptions);
 
 		if (!session?.user?.id) {
-			return new NextResponse("Unauthorized", { status: 401 });
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const existingDoc = await prisma.apiDoc.findUnique({
+		const apiDoc = await prisma.apiDoc.findUnique({
 			where: {
 				id: params.id,
 			},
 		});
 
-		if (!existingDoc) {
-			return new NextResponse("API Doc not found", { status: 404 });
+		if (!apiDoc) {
+			return NextResponse.json({ error: "API Doc not found" }, { status: 404 });
 		}
 
-		if (existingDoc.userId !== session.user.id) {
-			return new NextResponse("Unauthorized", { status: 401 });
+		if (apiDoc.userId !== session.user.id) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		await prisma.apiDoc.delete({
@@ -134,8 +128,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 			},
 		});
 
-		return new NextResponse(null, { status: 204 });
+		return NextResponse.json({ message: "API Doc deleted successfully" });
 	} catch (error) {
-		return new NextResponse("Internal error", { status: 500 });
+		console.error("Error deleting API Doc:", error);
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 	}
 }
