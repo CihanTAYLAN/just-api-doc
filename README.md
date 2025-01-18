@@ -79,6 +79,25 @@ npm run dev
 - **Private**: Only you can view
 - **Protected**: Protected with access code
 
+## Screenshots
+
+Here are some screenshots showcasing the platform's interface and features:
+
+### Dashboard View
+![Dashboard View](/screen-images/Screenshot%202025-01-18%20at%2012.54.48%20AM.png)
+
+### API Documentation Creation
+![API Documentation Creation](/screen-images/Screenshot%202025-01-18%20at%2012.55.06%20AM.png)
+
+### API Documentation View
+![API Documentation View](/screen-images/Screenshot%202025-01-18%20at%2012.55.16%20AM.png)
+
+### Access Control Settings
+![Access Control Settings](/screen-images/Screenshot%202025-01-18%20at%2012.55.39%20AM.png)
+
+### Documentation Management
+![Documentation Management](/screen-images/Screenshot%202025-01-18%20at%2012.57.47%20AM.png)
+
 ## Contributing
 
 1. Fork the project
