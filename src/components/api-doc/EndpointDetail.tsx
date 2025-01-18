@@ -377,67 +377,65 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     <div className="h-full flex flex-col bg-white dark:bg-gray-900">
       {/* Header */}
       <div className="flex-none border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col space-y-4">
+        <div className="flex flex-col">
           {/* Method and Path */}
-          <div>
-            <div className="flex items-center gap-2">
-              <MethodBadge method={method} />
-              <div className="text-sm font-medium text-gray-900 dark:text-white">{path}</div>
-              {endpoint.deprecated && (
-                <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-full group relative">
-                  <svg className="h-3.5 w-3.5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M3.25 4A.75.75 0 012.5 3.25v-1.5a.75.75 0 011.5 0v1.5A.75.75 0 013.25 4zm13.5 0a.75.75 0 01-.75-.75v-1.5a.75.75 0 011.5 0v1.5a.75.75 0 01-.75.75zm-8-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0v-1.5zM5 4.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5A.75.75 0 015 4.25zm7 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5a.75.75 0 01.75-.75zM4.25 17a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm11.5 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm-8-1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0v1.5zm-.75 3.75a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm8 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75z" />
-                  </svg>
-                  <span>Deprecated</span>
+          <div className="flex items-center gap-2 mb-2">
+            <MethodBadge method={method} />
+            <div className="text-sm font-medium text-gray-900 dark:text-white">{path}</div>
+            {endpoint.deprecated && (
+              <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-full group relative">
+                <svg className="h-3.5 w-3.5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M3.25 4A.75.75 0 012.5 3.25v-1.5a.75.75 0 011.5 0v1.5A.75.75 0 013.25 4zm13.5 0a.75.75 0 01-.75-.75v-1.5a.75.75 0 011.5 0v1.5a.75.75 0 01-.75.75zm-8-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0v-1.5zM5 4.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5A.75.75 0 015 4.25zm7 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V5a.75.75 0 01.75-.75zM4.25 17a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm11.5 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm-8-1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0v1.5zm-.75 3.75a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75zm8 0a.75.75 0 00.75-.75v-1.5a.75.75 0 00-1.5 0v1.5c0 .414.336.75.75.75z" />
+                </svg>
+                <span>Deprecated</span>
 
-                  {/* Tooltip */}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 hidden group-hover:block z-10">
-                    <div className="bg-gray-900 text-white text-xs rounded p-2 shadow-lg">
-                      <div className="font-medium mb-1">Deprecated Endpoint</div>
-                      <div className="text-gray-300">
-                        This endpoint is deprecated and may be removed in future versions. Please consider using alternative endpoints.
-                      </div>
+                {/* Tooltip */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 hidden group-hover:block z-10">
+                  <div className="bg-gray-900 text-white text-xs rounded p-2 shadow-lg">
+                    <div className="font-medium mb-1">Deprecated Endpoint</div>
+                    <div className="text-gray-300">
+                      This endpoint is deprecated and may be removed in future versions. Please consider using alternative endpoints.
                     </div>
-                    {/* Tooltip Arrow */}
-                    <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
                   </div>
+                  {/* Tooltip Arrow */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
                 </div>
-              )}
-              {requiresAuth.length > 0 && (
-                <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-full group relative">
-                  <svg className="h-3.5 w-3.5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 015 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
-                  </svg>
-                  <span>Auth Required</span>
+              </div>
+            )}
+            {requiresAuth.length > 0 && (
+              <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-full group relative">
+                <svg className="h-3.5 w-3.5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 015 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                </svg>
+                <span>Auth Required</span>
 
-                  {/* Tooltip */}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 hidden group-hover:block z-10">
-                    <div className="bg-gray-900 text-white text-xs rounded p-2 shadow-lg">
-                      <div className="font-medium mb-1">Authentication Required</div>
-                      <div className="text-gray-300">
-                        {endpoint.security?.map((security, index) => {
-                          const scheme = Object.keys(security)[0];
-                          const schemeDetails = spec.components?.securitySchemes?.[scheme];
-                          return (
-                            <div key={index} className="flex items-center gap-1">
-                              <span>{schemeDetails?.type === 'http' ? 'Bearer Token' : schemeDetails?.type || scheme}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                {/* Tooltip */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-64 hidden group-hover:block z-10">
+                  <div className="bg-gray-900 text-white text-xs rounded p-2 shadow-lg">
+                    <div className="font-medium mb-1">Authentication Required</div>
+                    <div className="text-gray-300">
+                      {endpoint.security?.map((security, index) => {
+                        const scheme = Object.keys(security)[0];
+                        const schemeDetails = spec.components?.securitySchemes?.[scheme];
+                        return (
+                          <div key={index} className="flex items-center gap-1">
+                            <span>{schemeDetails?.type === 'http' ? 'Bearer Token' : schemeDetails?.type || scheme}</span>
+                          </div>
+                        );
+                      })}
                     </div>
-                    {/* Tooltip Arrow */}
-                    <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
                   </div>
+                  {/* Tooltip Arrow */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45"></div>
                 </div>
-              )}
-            </div>
-            {endpoint.description && (
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 mb-3 mt-2">
-                {endpoint.description}
-              </p>
+              </div>
             )}
           </div>
+          {endpoint.description && (
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              {endpoint.description}
+            </div>
+          )}
         </div>
       </div>
 
