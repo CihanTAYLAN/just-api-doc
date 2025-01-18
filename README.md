@@ -97,6 +97,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 - GitHub: [@cihantaylan](https://github.com/cihantaylan)
 - X: [@cihantaylan24](https://x.com/cihantaylan24)
 
+## I have a bug or feature request
+
+Please open an issue on [GitHub](https://github.com/cihanTAYLAN/just-api-doc/issues) or reach out to me on [X](https://x.com/cihantaylan24).
+
 ---
 
 Don't forget to star this project if you found it helpful!
