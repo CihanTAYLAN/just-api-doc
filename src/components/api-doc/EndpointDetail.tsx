@@ -9,8 +9,8 @@ import { CodeSamples } from './CodeSamples';
 import { generateExampleFromSchema } from './utils/schemaToExample';
 import { resolveSchema } from './utils/resolveSchema';
 import { JsonEditor } from './JsonEditor';
-import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { Headers } from './Headers';
+import { RequestBodySection } from './RequestBodySection';
 
 interface EndpointDetailProps {
   path: string;
@@ -28,7 +28,13 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const { theme } = useTheme();
   const [selectedServer, setSelectedServer] = useState(spec.servers?.[0]?.url || '');
   const [requestBody, setRequestBody] = useState<any>(null);
-  const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>([]);
+  const [headers, setHeaders] = useState<{ key: string; value: string }[]>(() => {
+    const initialHeaders = [{ key: 'Content-Type', value: 'application/json' }];
+    if (endpoint.security?.length) {
+      initialHeaders.push({ key: 'Authorization', value: '' });
+    }
+    return initialHeaders;
+  });
   const [queryParams, setQueryParams] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'try' | 'code'>('try');
   const [loading, setLoading] = useState(false);
@@ -45,8 +51,28 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     setError(null);
     setQueryParams({});
     setRequestBody(null);
-    setHeaders([]); // Reset headers when endpoint changes
-  }, [endpoint.path, endpoint.method]);
+    setHeaders(() => {
+      const initialHeaders = [{ key: 'Content-Type', value: 'application/json' }];
+      if (endpoint.security?.length) {
+        initialHeaders.push({ key: 'Authorization', value: '' });
+      }
+      return initialHeaders;
+    });
+
+    // Set initial content type if request body exists
+    if (endpoint.requestBody?.content) {
+      const contentTypes = Object.keys(endpoint.requestBody.content);
+      if (contentTypes.length > 0) {
+        // Prefer application/json if available, otherwise use the first content type
+        const preferredType = contentTypes.includes('application/json') 
+          ? 'application/json' 
+          : contentTypes[0];
+        setSelectedContentType(preferredType);
+      }
+    } else {
+      setSelectedContentType('');
+    }
+  }, [endpoint]);
 
   // Get default value for a parameter based on its schema
   const getDefaultValueForParameter = useCallback((param: OpenAPIV3.ParameterObject): string => {
@@ -109,17 +135,14 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
   // Handle header changes
   const handleHeaderChange = useCallback((newHeaders: Array<{ key: string; value: string }>) => {
-    const contentTypeHeader = getContentTypeHeader();
-    
-    // Yeni header'lar içinde Content-Type varsa onu kullan, yoksa eskisini ekle
-    const updatedHeaders = newHeaders.filter(h => h.key.toLowerCase() !== 'content-type');
-    if (contentTypeHeader) {
-      updatedHeaders.unshift(contentTypeHeader);
+    // Content-Type header'ını koru
+    const contentTypeHeader = headers.find(h => h.key.toLowerCase() === 'content-type');
+    if (contentTypeHeader && !newHeaders.some(h => h.key.toLowerCase() === 'content-type')) {
+      newHeaders.unshift(contentTypeHeader);
     }
-
-    setHeaders(updatedHeaders);
-    updateHeaderValues(updatedHeaders);
-  }, [getContentTypeHeader, updateHeaderValues]);
+    setHeaders(newHeaders);
+    updateHeaderValues(newHeaders);
+  }, [headers, updateHeaderValues]);
 
   // Initialize headers with security schemes and default parameters
   useEffect(() => {
@@ -268,8 +291,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   useEffect(() => {
     if (contentTypes.length > 0) {
       // Prefer application/json if available
-      const defaultType = contentTypes.includes('application/json') 
-        ? 'application/json' 
+      const defaultType = contentTypes.includes('application/json')
+        ? 'application/json'
         : contentTypes[0];
       setSelectedContentType(defaultType);
     }
@@ -284,7 +307,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   };
 
   // Render request body based on content type
-  const renderRequestBody = () => {
+  const renderRequestBody = useMemo(() => {
     if (!endpoint.requestBody?.content || !selectedContentType) return null;
 
     const content = endpoint.requestBody.content[selectedContentType];
@@ -295,8 +318,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         const jsonValue = (() => {
           try {
             if (requestBody) {
-              return typeof requestBody === 'string' 
-                ? requestBody 
+              return typeof requestBody === 'string'
+                ? requestBody
                 : JSON.stringify(requestBody, null, 2);
             }
 
@@ -407,13 +430,13 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
           </div>
         );
     }
-  };
+  }, [endpoint.requestBody, selectedContentType, requestBody, spec, setRequestBody]);
 
   // Update request body when sending request
   const handleSendRequest = async () => {
     // Prepare request body based on content type
     let finalRequestBody: string | FormData | undefined;
-    
+
     if (selectedContentType === 'multipart/form-data') {
       const formDataObj = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
@@ -620,7 +643,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
                 <div className={endpoint.requestBody ? "" : "lg:col-span-2"}>
                   <div className="space-y-4">
                     {/* Headers */}
-                    <Headers 
+                    <Headers
                       headers={headers}
                       onHeaderChange={handleHeaderChange}
                     />
@@ -629,10 +652,9 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
                 {/* Request Body Section */}
                 {endpoint.requestBody && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Request Body</h3>
-                    {renderRequestBody()}
-                  </div>
+                  <RequestBodySection requestBody={endpoint.requestBody}>
+                    {renderRequestBody}
+                  </RequestBodySection>
                 )}
               </div>
 
