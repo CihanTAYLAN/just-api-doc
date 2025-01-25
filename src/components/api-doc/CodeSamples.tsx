@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { CheckIcon, ClipboardIcon } from '@heroicons/react/24/outline';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -14,6 +14,15 @@ interface CodeSamplesProps {
   body?: Record<string, unknown>;
 }
 
+enum TActiveLangTab {
+  NODE = 'node',
+  PYTHON = 'python',
+  CURL = 'curl',
+  GO = 'go',
+  JAVA = 'java',
+  PHP = 'php'
+}
+
 export const CodeSamples: React.FC<CodeSamplesProps> = ({
   method,
   url,
@@ -22,7 +31,7 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const { theme } = useTheme();
-  const [activeLangTab, setActiveLangTab] = useState<'node' | 'python' | 'curl' | 'go' | 'java' | 'php'>('node');
+  const [activeLangTab, setActiveLangTab] = useState<TActiveLangTab>(TActiveLangTab.NODE);
 
   const getNodeAxiosCode = () => {
     const code = [
@@ -189,22 +198,22 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
   const handleCopy = async () => {
     let codeContent;
     switch (activeLangTab) {
-      case 'curl':
+      case TActiveLangTab.CURL:
         codeContent = getCurlCode();
         break;
-      case 'node':
+      case TActiveLangTab.NODE:
         codeContent = getNodeAxiosCode();
         break;
-      case 'python':
+      case TActiveLangTab.PYTHON:
         codeContent = getPythonRequestsCode();
         break;
-      case 'go':
+      case TActiveLangTab.GO:
         codeContent = getGoCode();
         break;
-      case 'java':
+      case TActiveLangTab.JAVA:
         codeContent = getJavaCode();
         break;
-      case 'php':
+      case TActiveLangTab.PHP:
         codeContent = getPhpCode();
         break;
       default:
@@ -215,36 +224,36 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getLanguage = (tab: typeof activeLangTab) => {
+  const getLanguage = (tab: TActiveLangTab) => {
     switch (tab) {
-      case 'node': return 'javascript';
-      case 'python': return 'python';
-      case 'curl': return 'bash';
-      case 'go': return 'go';
-      case 'java': return 'java';
-      case 'php': return 'php';
+      case TActiveLangTab.NODE: return 'javascript';
+      case TActiveLangTab.PYTHON: return 'python';
+      case TActiveLangTab.CURL: return 'bash';
+      case TActiveLangTab.GO: return 'go';
+      case TActiveLangTab.JAVA: return 'java';
+      case TActiveLangTab.PHP: return 'php';
     }
   };
 
   const getCodeForLanguage = () => {
     let codeContent;
     switch (activeLangTab) {
-      case 'node':
+      case TActiveLangTab.NODE:
         codeContent = getNodeAxiosCode();
         break;
-      case 'python':
+      case TActiveLangTab.PYTHON:
         codeContent = getPythonRequestsCode();
         break;
-      case 'curl':
+      case TActiveLangTab.CURL:
         codeContent = getCurlCode();
         break;
-      case 'go':
+      case TActiveLangTab.GO:
         codeContent = getGoCode();
         break;
-      case 'java':
+      case TActiveLangTab.JAVA:
         codeContent = getJavaCode();
         break;
-      case 'php':
+      case TActiveLangTab.PHP:
         codeContent = getPhpCode();
         break;
       default:
@@ -254,12 +263,12 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
   };
 
   const tabs = [
-    { id: 'node', label: 'Node / Axios', icon: '⚡' },
-    { id: 'python', label: 'Python / Requests', icon: '🐍' },
-    { id: 'curl', label: 'cURL', icon: '🔄' },
-    { id: 'go', label: 'Go', icon: '🔵' },
-    { id: 'java', label: 'Java / OkHttp', icon: '☕' },
-    { id: 'php', label: 'PHP / Guzzle', icon: '🐘' }
+    { id: TActiveLangTab.NODE, label: 'Node / Axios', icon: '⚡' },
+    { id: TActiveLangTab.PYTHON, label: 'Python / Requests', icon: '🐍' },
+    { id: TActiveLangTab.CURL, label: 'cURL', icon: '🔄' },
+    { id: TActiveLangTab.GO, label: 'Go', icon: '🔵' },
+    { id: TActiveLangTab.JAVA, label: 'Java / OkHttp', icon: '☕' },
+    { id: TActiveLangTab.PHP, label: 'PHP / Guzzle', icon: '🐘' }
   ] as const;
 
   return (
@@ -281,6 +290,7 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
             </span>
             {activeLangTab === id && (
               <motion.div
+                key={id}
                 layoutId="activeTab"
                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"
                 initial={false}
@@ -292,30 +302,28 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
 
       {/* Code Display */}
       <div className="relative">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeLangTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="relative"
-          >
-            <div className="dark:bg-gray-900">
-              <SyntaxHighlighter
-                language={getLanguage(activeLangTab)}
-                style={theme === 'dark' ? oneDark : oneLight}
-                customStyle={{
-                  margin: 0,
-                  padding: '1rem',
-                  fontSize: '0.875rem',
-                }}
-              >
-                {getCodeForLanguage()}
-              </SyntaxHighlighter>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={activeLangTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="relative"
+        >
+          <div className="dark:bg-gray-900">
+            <SyntaxHighlighter
+              language={getLanguage(activeLangTab)}
+              style={theme === 'dark' ? oneDark : oneLight}
+              customStyle={{
+                margin: 0,
+                padding: '1rem',
+                fontSize: '0.875rem',
+              }}
+            >
+              {getCodeForLanguage()}
+            </SyntaxHighlighter>
+          </div>
+        </motion.div>
 
         <div className="absolute top-3 right-3 flex space-x-2">
           <button
@@ -323,27 +331,25 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
             className="p-2 rounded-lg transition-all duration-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 group hover:scale-105 active:scale-95"
             title="Copy to clipboard"
           >
-            <AnimatePresence mode="wait">
-              {copied ? (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="text-green-600 dark:text-green-400"
-                >
-                  <CheckIcon className="h-5 w-5" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"
-                >
-                  <ClipboardIcon className="h-5 w-5" />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {copied ? (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="text-green-600 dark:text-green-400"
+              >
+                <CheckIcon className="h-5 w-5" />
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"
+              >
+                <ClipboardIcon className="h-5 w-5" />
+              </motion.div>
+            )}
           </button>
         </div>
       </div>
