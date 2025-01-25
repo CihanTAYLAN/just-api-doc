@@ -10,7 +10,12 @@ const nextConfig: NextConfig = {
 		ignoreDuringBuilds: true,
 	},
 	images: {
-		domains: ["ridenear.com"],
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "**",
+			},
+		],
 	},
 };
 
