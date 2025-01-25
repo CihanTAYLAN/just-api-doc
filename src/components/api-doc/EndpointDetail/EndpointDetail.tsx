@@ -1,13 +1,12 @@
 "use client";;
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import axios from 'axios';
 import { OpenAPIV3 } from 'openapi-types';
-import { ApiEndpoint, ApiSpec } from './types';
+import { ApiEndpoint, ApiSpec } from '../types';
 import { ApiDoc } from '@prisma/client';
 import { EndpointUrlBar } from './EndpointUrlBar';
 import { CodeSamples } from './CodeSamples';
-import { generateExampleFromSchema } from './utils/schemaToExample';
-import { resolveSchema } from './utils/resolveSchema';
+import { generateExampleFromSchema } from '../utils/schemaToExample';
+import { resolveSchema } from '../utils/resolveSchema';
 import { JsonEditor } from './JsonEditor';
 import { Headers } from './Headers';
 import { RequestBodySection } from './RequestBodySection';
@@ -544,30 +543,11 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     return stringHeaders;
   };
 
-  // Update request body when sending request
   const handleSendRequest = async () => {
-    // Prepare request body based on content type
-    let finalRequestBody: string | FormData | undefined;
-
-    if (selectedContentType === 'multipart/form-data') {
-      const formDataObj = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        formDataObj.append(key, value);
-      });
-      finalRequestBody = formDataObj;
-    } else if (selectedContentType === 'application/x-www-form-urlencoded') {
-      const params = new URLSearchParams();
-      Object.entries(formData).forEach(([key, value]) => {
-        params.append(key, value);
-      });
-      finalRequestBody = params.toString();
-    } else {
-      finalRequestBody = requestBody ? JSON.stringify(requestBody) : undefined;
-    }
-
     try {
       setLoading(true);
       setError(null);
+      setResponse(null);
 
       // Validate server URL
       if (!selectedServer) {
@@ -576,61 +556,89 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
       // Validate required path parameters
       const missingPathParams = endpoint.parameters
-        ?.filter(param => !('$ref' in param) && (param as OpenAPIV3.ParameterObject).in === 'path' && (param as OpenAPIV3.ParameterObject).required && !pathParams[(param as OpenAPIV3.ParameterObject).name])
+        ?.filter(param => !('$ref' in param) &&
+          (param as OpenAPIV3.ParameterObject).in === 'path' &&
+          (param as OpenAPIV3.ParameterObject).required &&
+          !pathParams[(param as OpenAPIV3.ParameterObject).name])
         .map(param => !('$ref' in param) ? (param as OpenAPIV3.ParameterObject).name : '');
 
-      if (missingPathParams && missingPathParams.length > 0) {
+      if (missingPathParams?.length > 0) {
         throw new Error(`Missing required path parameters: ${missingPathParams.join(', ')}`);
+      }
+
+      // Prepare request body based on content type
+      let finalRequestBody: string | FormData | undefined;
+      if (selectedContentType === 'multipart/form-data') {
+        const formDataObj = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+          formDataObj.append(key, value);
+        });
+        finalRequestBody = formDataObj;
+      } else if (selectedContentType === 'application/x-www-form-urlencoded') {
+        const params = new URLSearchParams();
+        Object.entries(formData).forEach(([key, value]) => {
+          params.append(key, value);
+        });
+        finalRequestBody = params.toString();
+      } else if (requestBody) {
+        finalRequestBody = JSON.stringify(requestBody);
       }
 
       // Prepare headers
       const headersObj = localHeaders.reduce((acc, h) => {
-        if (h.key.trim() && h.value.trim()) {
-          acc[h.key.trim()] = h.value.trim();
+        const key = h.key.trim();
+        const value = h.value.trim();
+        if (key && value) {
+          acc[key] = value;
         }
         return acc;
       }, {} as Record<string, string>);
 
+      if (selectedContentType) {
+        headersObj['Content-Type'] = selectedContentType;
+      }
+
       // Prepare URL with path parameters and query parameters
       const url = new URL(`${selectedServer}${getUrlWithPathParams(path)}`);
       Object.entries(queryParams).forEach(([key, value]) => {
-        if (key.trim() && value.trim()) {
-          url.searchParams.append(key.trim(), value.trim());
+        const trimmedKey = key.trim();
+        const trimmedValue = value.trim();
+        if (trimmedKey && trimmedValue) {
+          url.searchParams.append(trimmedKey, trimmedValue);
         }
       });
 
       // Get current request body or generate from schema if not set
       let currentBody = finalRequestBody;
-      if (!currentBody && endpoint.requestBody && !('$ref' in endpoint.requestBody) && endpoint.requestBody.content?.['application/json']?.schema) {
+      if (!currentBody && endpoint.requestBody &&
+        !('$ref' in endpoint.requestBody) &&
+        endpoint.requestBody.content?.['application/json']?.schema) {
         const schema = endpoint.requestBody.content['application/json'].schema;
         const resolvedSchema = resolveSchema(schema, spec);
-        currentBody = generateExampleFromSchema(resolvedSchema);
+        currentBody = JSON.stringify(generateExampleFromSchema(resolvedSchema));
       }
 
-      // Prepare request config
-      const config = {
-        method: method.toLowerCase(),
-        url: url.toString(),
-        headers: headersObj,
-        data: ['get', 'head'].includes(method.toLowerCase()) ? undefined : currentBody
-      };
-
-      // Debug log
-      console.log('Sending request with config:', {
-        method: config.method,
-        url: config.url,
-        headers: config.headers,
-        data: config.data
+      // Send request through proxy
+      const proxyResponse = await fetch('/api/proxy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: url.toString(),
+          method: method.toLowerCase(),
+          headers: headersObj,
+          data: ['get', 'head'].includes(method.toLowerCase()) ? undefined : currentBody
+        })
       });
 
-      const axiosResponse = await axios(config);
+      const responseData = await proxyResponse.json();
 
-      // Transform headers to ensure they match the expected type
       const response = {
-        status: axiosResponse.status,
-        statusText: axiosResponse.statusText,
-        headers: convertHeadersToString(axiosResponse.headers),
-        data: axiosResponse.data
+        status: proxyResponse.status,
+        statusText: proxyResponse.statusText,
+        headers: Object.fromEntries(proxyResponse.headers.entries()),
+        data: responseData
       };
 
       setResponse(response);
@@ -642,13 +650,19 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       });
     } catch (err: any) {
       console.error('Request failed:', err);
-      setError(err?.response?.data?.message || err?.message || 'Request failed');
-      setResponse(err?.response ? {
-        status: err?.response?.status,
-        statusText: err?.response?.statusText,
-        headers: convertHeadersToString(err?.response?.headers),
-        data: err?.response?.data
-      } : null);
+      const errorMessage = err?.response?.data?.error || err?.message || 'Request failed';
+      setError(errorMessage);
+
+      if (err?.response) {
+        setResponse({
+          status: err.response.status,
+          statusText: err.response.statusText,
+          headers: err.response.headers,
+          data: err.response.data
+        });
+      } else {
+        setResponse(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -958,9 +972,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
               </div>
 
               {/* Response Section */}
-              {response && (
-                <ResponseSection response={response} />
-              )}
+              <ResponseSection response={response} sending={loading} />
             </div>
             :
             <div className="p-4 px-1">

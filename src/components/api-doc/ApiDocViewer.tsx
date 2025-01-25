@@ -1,14 +1,14 @@
-"use client";
-
+"use client";;
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { ApiDocViewerProps, ApiEndpoint, ApiSpec } from './types';
 import { OpenAPIV3 } from 'openapi-types';
 import { fetchApiSpec } from './utils';
 import { Sidebar } from './Sidebar';
-import { EndpointDetail } from './EndpointDetail';
+import { EndpointDetail } from './EndpointDetail/EndpointDetail';
 import { useSearchParams, usePathname } from 'next/navigation';
 import Overview from './Overview';
+
 
 export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   const pathname = usePathname();

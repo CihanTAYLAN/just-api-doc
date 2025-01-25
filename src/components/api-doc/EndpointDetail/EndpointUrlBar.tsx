@@ -1,7 +1,7 @@
 "use client";;
 import React from 'react';
-import { Server } from './types';
-import { MethodBadge } from './MethodBadge';
+import { Server } from '../types';
+import { MethodBadge } from '../MethodBadge';
 
 interface EndpointUrlBarProps {
   servers: Server[];

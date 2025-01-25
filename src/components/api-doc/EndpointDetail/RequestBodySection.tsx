@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { ApiEndpoint } from './types';
+import { ApiEndpoint } from '../types';
 
 interface RequestBodySectionProps {
   requestBody: NonNullable<ApiEndpoint['requestBody']>;
