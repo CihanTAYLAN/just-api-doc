@@ -275,7 +275,7 @@ export default function Navbar({ session }: NavbarProps) {
                 Log In
               </Link>
               <Link
-                href="/register"
+                href="/signup"
                 className="block w-full text-center px-4 py-3 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >

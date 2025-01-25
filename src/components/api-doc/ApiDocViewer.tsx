@@ -412,10 +412,8 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
             />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center min-h-full bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 px-3 py-4 sm:p-4 md:p-6 lg:p-8">
-            {/* Overview */}
-            <Overview apiDoc={apiDoc} spec={spec} />
-          </div>
+          // Overview
+          <Overview apiDoc={apiDoc} spec={spec} />
         )}
       </div>
     </div >
