@@ -1,11 +1,11 @@
-"use client";
-
+"use client";;
 import { Session } from "next-auth";
 import NextImage from "next/image";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "./ThemeToggle";
+import { BiSolidDashboard } from "react-icons/bi";
 
 interface NavbarProps {
   session: Session | null;
@@ -62,6 +62,13 @@ export default function Navbar({ session }: NavbarProps) {
             <ThemeToggle />
             {session ? (
               <div className="flex items-center space-x-4">
+                <Link
+                  href="/dashboard"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                >
+                  <BiSolidDashboard className="inline-block mr-1" />
+                  Dashboard
+                </Link>
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -76,9 +83,8 @@ export default function Navbar({ session }: NavbarProps) {
                       {session.user?.name}
                     </span>
                     <svg
-                      className={`h-5 w-5 text-gray-400 transform transition-transform duration-200 ${
-                        isDropdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`h-5 w-5 text-gray-400 transform transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""
+                        }`}
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
                       fill="currentColor"
@@ -182,9 +188,8 @@ export default function Navbar({ session }: NavbarProps) {
 
       {/* Mobile menu */}
       <div
-        className={`sm:hidden fixed inset-0 bg-white dark:bg-gray-900 z-50 transition-transform duration-300 ease-in-out transform ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`sm:hidden fixed inset-0 bg-white dark:bg-gray-900 z-50 transition-transform duration-300 ease-in-out transform ${isMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-gray-200 dark:border-gray-800">
           <Link
