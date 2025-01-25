@@ -67,15 +67,76 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   }, [localHeaders, apiDoc?.id]);
 
-  // Reset state when endpoint changes
+  // Reset and initialize state when endpoint changes
   useEffect(() => {
-    setResponse(null);
-    setError(null);
-    setQueryParams({});
-    setRequestBody(null);
-    setFormData({});
-    setPathParams({});
-  }, [endpoint]);
+    const initializeState = async () => {
+      // Reset all states
+      setResponse(null);
+      setError(null);
+      setQueryParams({});
+      setRequestBody(null);
+      setFormData({});
+      setPathParams({});
+
+      // Initialize request body if available
+      if (endpoint.requestBody && !('$ref' in endpoint.requestBody) && endpoint.requestBody.content?.['application/json']?.schema) {
+        try {
+          const schema = endpoint.requestBody.content['application/json'].schema;
+          const resolvedSchema = resolveSchema(schema, spec);
+          const example = generateExampleFromSchema(resolvedSchema);
+          const parsedExample = typeof example === 'string' ? JSON.parse(example) : example;
+          setRequestBody(parsedExample);
+        } catch (error) {
+          console.error('Error generating example request body:', error);
+          setRequestBody(null);
+        }
+      }
+
+      // Initialize content type
+      if (endpoint.requestBody && !('$ref' in endpoint.requestBody) && endpoint.requestBody.content) {
+        const contentTypes = Object.keys(endpoint.requestBody.content);
+        if (contentTypes.length > 0) {
+          const preferredType = contentTypes.includes('application/json')
+            ? 'application/json'
+            : contentTypes[0];
+          setSelectedContentType(preferredType);
+        }
+      } else {
+        setSelectedContentType('');
+      }
+
+      // Initialize query parameters
+      const defaultParams: Record<string, string> = {};
+      endpoint.parameters?.forEach(param => {
+        if (!('$ref' in param) && param.in === 'query' && param.required) {
+          defaultParams[param.name] = getDefaultValueForParameter(param);
+        }
+      });
+      setQueryParams(defaultParams);
+
+      // Initialize path parameters
+      const defaultPathParams: Record<string, string> = {};
+      const storedParams = localStorage.getItem(`pathParams-${apiDoc.id}`);
+      let initialParams = {};
+
+      if (storedParams) {
+        try {
+          initialParams = JSON.parse(storedParams);
+        } catch (error) {
+          console.error('Error parsing stored path parameters:', error);
+        }
+      }
+
+      endpoint.parameters?.forEach(param => {
+        if (!('$ref' in param) && param.in === 'path') {
+          defaultPathParams[param.name] = (initialParams as Record<string, string>)[param.name] || '';
+        }
+      });
+      setPathParams(defaultPathParams);
+    };
+
+    initializeState();
+  }, [endpoint, spec, apiDoc.id]);
 
   // Get default value for a parameter based on its schema
   const getDefaultValueForParameter = useCallback((param: OpenAPIV3.ParameterObject): string => {
@@ -276,24 +337,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     updateHeaderValues(localHeaders);
   }, [localHeaders, updateHeaderValues]);
 
-  // Initialize query parameters from OpenAPI spec
-  useEffect(() => {
-    const defaultParams: Record<string, string> = {};
-
-    endpoint.parameters?.forEach(param => {
-      if ('$ref' in param) {
-        // Handle reference parameter if needed
-        return;
-      }
-
-      if (param.in === 'query' && param.required) {
-        defaultParams[param.name] = getDefaultValueForParameter(param);
-      }
-    });
-
-    setQueryParams(defaultParams);
-  }, [endpoint.parameters, endpoint.path, endpoint.method]);
-
   // Extract security schemes from OpenAPI spec
   useEffect(() => {
     if (!endpoint?.security || !spec.components?.securitySchemes) {
@@ -349,50 +392,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
 
   }, [endpoint.security]);
-
-  // Initialize request body with example from schema
-  useEffect(() => {
-    if (endpoint.requestBody && !('$ref' in endpoint.requestBody) && endpoint.requestBody.content?.['application/json']?.schema && !requestBody) {
-      try {
-        const schema = endpoint.requestBody.content['application/json'].schema;
-        const resolvedSchema = resolveSchema(schema, spec);
-        const example = generateExampleFromSchema(resolvedSchema);
-        if (!requestBody) {
-          try {
-            const parsedExample = typeof example === 'string' ? JSON.parse(example) : example;
-            setRequestBody(parsedExample);
-          } catch (error) {
-            console.error('Error parsing example:', error);
-            setRequestBody(null);
-          }
-        }
-      } catch (error) {
-        console.error('Error generating example request body:', error);
-      }
-    }
-  }, [endpoint.requestBody, spec, requestBody]);
-
-  // Set initial content type when endpoint changes
-  useEffect(() => {
-    if (endpoint.requestBody && !('$ref' in endpoint.requestBody) && endpoint.requestBody.content) {
-      const contentTypes = Object.keys(endpoint.requestBody.content);
-      if (contentTypes.length > 0) {
-        // Prefer application/json if available, otherwise use the first content type
-        const preferredType = contentTypes.includes('application/json')
-          ? 'application/json'
-          : contentTypes[0];
-        setSelectedContentType(preferredType);
-      }
-    } else {
-      setSelectedContentType('');
-    }
-  }, [endpoint.requestBody]);
-
-  // Get available content types
-  const contentTypes = useMemo(() => {
-    if (!endpoint.requestBody || '$ref' in endpoint.requestBody) return [];
-    return Object.keys(endpoint.requestBody.content);
-  }, [endpoint.requestBody]);
 
   // Render request body based on content type
   const renderRequestBody = useMemo(() => {
@@ -687,29 +686,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       localStorage.setItem(`pathParams-${apiDoc.id}`, JSON.stringify(pathParams));
     }
   }, [pathParams, path]);
-
-  // Initialize path parameters from OpenAPI spec
-  useEffect(() => {
-    const defaultPathParams: Record<string, string> = {};
-    const storedParams = localStorage.getItem(`pathParams-${apiDoc.id}`);
-    let initialParams = {};
-
-    if (storedParams) {
-      try {
-        initialParams = JSON.parse(storedParams);
-      } catch (error) {
-        console.error('Error parsing stored path parameters:', error);
-      }
-    }
-
-    endpoint.parameters?.forEach(param => {
-      if ((param as OpenAPIV3.ParameterObject).in === 'path') {
-        defaultPathParams[(param as OpenAPIV3.ParameterObject).name] = (initialParams as Record<string, string>)['name'] || '';
-      }
-    });
-
-    setPathParams(defaultPathParams);
-  }, [endpoint.parameters, path]);
 
   // Function to replace path parameters in URL
   const getUrlWithPathParams = useCallback((urlPath: string) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { ApiEndpoint } from '../types';
+import { ApiEndpoint, RequestBody as RequestBodyType, MediaType, Reference } from '../types';
 
 interface RequestBodyProps {
   requestBody: NonNullable<ApiEndpoint['requestBody']>;
@@ -11,6 +11,15 @@ interface RequestBodyProps {
 
 export const RequestBody: React.FC<RequestBodyProps> = ({ requestBody, onDataChange, value }) => {
   if (!requestBody) return null;
+
+  const isRequestBody = (obj: any): obj is RequestBodyType => {
+    return obj && 'content' in obj;
+  };
+
+  if (!isRequestBody(requestBody)) {
+    // Handle reference case
+    return null;
+  }
 
   return (
     <div className="space-y-2">
@@ -31,16 +40,16 @@ export const RequestBody: React.FC<RequestBodyProps> = ({ requestBody, onDataCha
         Object.entries(requestBody.content || {}).map(([contentType, content]) => (
           <div key={contentType} className="space-y-2">
             <div className="text-sm font-mono text-gray-500">{contentType}</div>
-            {content.schema && (
+            {(content as MediaType).schema && (
               <pre className="text-sm bg-gray-50 dark:bg-gray-800 p-2 rounded overflow-auto">
-                {JSON.stringify(content.schema, null, 2)}
+                {JSON.stringify((content as MediaType).schema, null, 2)}
               </pre>
             )}
-            {content.example && (
+            {(content as MediaType).example && (
               <div className="space-y-1">
                 <div className="text-sm font-medium">Example:</div>
                 <pre className="text-sm bg-gray-50 dark:bg-gray-800 p-2 rounded overflow-auto">
-                  {JSON.stringify(content.example, null, 2)}
+                  {JSON.stringify((content as MediaType).example, null, 2)}
                 </pre>
               </div>
             )}
