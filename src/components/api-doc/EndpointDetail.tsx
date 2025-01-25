@@ -4,7 +4,6 @@ import { useTheme } from 'next-themes';
 import axios from 'axios';
 import { ApiEndpoint, ApiSpec } from './types';
 import { ApiDoc } from '@prisma/client';
-import { MethodBadge } from './MethodBadge';
 import { EndpointUrlBar } from './EndpointUrlBar';
 import { CodeSamples } from './CodeSamples';
 import { generateExampleFromSchema } from './utils/schemaToExample';
@@ -651,7 +650,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         <div className="flex flex-col">
           {/* Method and Path */}
           <div className="flex items-center gap-2 mb-2">
-            <MethodBadge method={method} />
             <div className="text-sm font-medium text-gray-900 dark:text-white">{path}</div>
             {endpoint.deprecated && (
               <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-full group relative">

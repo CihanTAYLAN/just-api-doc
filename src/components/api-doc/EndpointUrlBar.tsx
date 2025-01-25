@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Server } from './types';
+import ReactMarkdown from 'react-markdown';
+import { MethodBadge } from './MethodBadge';
 
 interface EndpointUrlBarProps {
   servers: Server[];
@@ -18,7 +20,7 @@ export const EndpointUrlBar: React.FC<EndpointUrlBarProps> = ({
   path,
   method
 }) => {
-  const fullUrl = `${selectedServer}${path}`;
+  const fullUrl = `${selectedServer || 'http://localhost'}${path}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(fullUrl);
@@ -27,17 +29,18 @@ export const EndpointUrlBar: React.FC<EndpointUrlBarProps> = ({
   return (
     <>
       <div className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-sm">
-        <select
+        <MethodBadge method={method} />
+        {servers.length > 1 && <select
           value={selectedServer}
           onChange={(e) => onServerChange(e.target.value)}
           className="bg-transparent border-none text-gray-600 dark:text-gray-300 focus:ring-0 text-sm py-0"
         >
           {servers.map((server) => (
             <option key={server.url} value={server.url}>
-              {server.description || server.url}
+              <ReactMarkdown>{server.description || server.url}</ReactMarkdown>
             </option>
           ))}
-        </select>
+        </select>}
         <div className="flex-1 flex items-center">
           <code className="text-gray-900 dark:text-gray-100 font-mono">{path}</code>
         </div>
