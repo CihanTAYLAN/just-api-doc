@@ -16,7 +16,7 @@ interface JsonEditorProps {
 export const JsonEditor: React.FC<JsonEditorProps> = ({
   value,
   onChange,
-  height = "200px"
+  height = "100px"
 }) => {
   const { theme, systemTheme } = useTheme();
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);

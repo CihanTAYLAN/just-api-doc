@@ -25,7 +25,7 @@ export const RequestBody: React.FC<RequestBodyProps> = ({ requestBody, onDataCha
               // Invalid JSON, ignore
             }
           }}
-          className="w-full h-40 text-sm font-mono border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2"
+          className="w-full h-20 text-sm font-mono border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2"
         />
       ) : (
         Object.entries(requestBody.content || {}).map(([contentType, content]) => (

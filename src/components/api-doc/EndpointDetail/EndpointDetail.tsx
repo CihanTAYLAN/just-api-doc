@@ -447,7 +447,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
                 setRequestBody({});
               }
             }}
-            height="400px"
+            height="200px"
           />
         );
 
