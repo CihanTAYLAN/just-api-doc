@@ -17,6 +17,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
+    "check-password-strength": "^3.0.0",
     "framer-motion": "^11.18.0",
     "next": "15.1.4",
     "next-auth": "^4.24.11",
@@ -25,10 +26,12 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-syntax-highlighter": "^15.6.1",
+    "sweetalert2": "^11.15.10",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
