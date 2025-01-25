@@ -849,11 +849,14 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             )}
           </div>
         ) : (
-          <div>
+          <div className='pt-4'>
             <CodeSamples
               method={method}
-              url={`${selectedServer}${path}`}
-              headers={localHeaders}
+              url={`${selectedServer || 'http://localhost'}${path}`}
+              headers={localHeaders.reduce((acc, header) => ({
+                ...acc,
+                [header.key]: header.value
+              }), {})}
               body={requestBody}
             />
           </div>

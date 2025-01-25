@@ -42,7 +42,7 @@ export const EndpointUrlBar: React.FC<EndpointUrlBarProps> = ({
           ))}
         </select>}
         <div className="flex-1 flex items-center">
-          <code className="text-gray-900 dark:text-gray-100 font-mono">{path}</code>
+          <code className="text-gray-900 dark:text-gray-100 font-mono">{decodeURIComponent(path)}</code>
         </div>
         <button
           onClick={copyToClipboard}
@@ -54,7 +54,7 @@ export const EndpointUrlBar: React.FC<EndpointUrlBarProps> = ({
           </svg>
         </button>
       </div>
-      <div className="text-gray-500 dark:text-gray-400 text-sm font-mono truncate mt-1">{fullUrl}</div>
+      <div className="text-gray-500 dark:text-gray-400 text-sm font-mono truncate mt-1">{decodeURIComponent(fullUrl)}</div>
     </>
   );
 };
