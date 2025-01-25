@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { HttpResponse } from "@/lib/exceptions/http-response";
+import { HttpResponse } from "@/lib/classes/http-response";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { passwordStrength } from "check-password-strength";
-import { HttpStatus } from "@/lib/exceptions/http-status";
+import { HttpStatus } from "@/lib/classes/http-status";
 
 export async function PUT(
   request: NextRequest,
