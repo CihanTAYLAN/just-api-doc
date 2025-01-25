@@ -74,6 +74,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     setError(null);
     setQueryParams({});
     setRequestBody(null);
+    setFormData({});
+    setPathParams({});
   }, [endpoint]);
 
   // Get default value for a parameter based on its schema
