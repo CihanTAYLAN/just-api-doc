@@ -105,12 +105,6 @@ export default function Navbar({ session }: NavbarProps) {
                         >
                           Profile
                         </Link>
-                        <Link
-                          href="/settings"
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          Settings
-                        </Link>
                         <button
                           onClick={handleSignOut}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -254,25 +248,11 @@ export default function Navbar({ session }: NavbarProps) {
 
               <div className="space-y-4">
                 <Link
-                  href="/dashboard"
-                  className="block text-base font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                <Link
                   href="/profile"
                   className="block text-base font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Profile
-                </Link>
-                <Link
-                  href="/settings"
-                  className="block text-base font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Settings
                 </Link>
                 <button
                   onClick={(e) => {
