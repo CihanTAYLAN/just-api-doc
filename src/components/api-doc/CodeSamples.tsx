@@ -11,18 +11,18 @@ interface CodeSamplesProps {
   method: string;
   url: string;
   headers?: Record<string, string>;
-  body?: any;
+  body?: Record<string, unknown>;
 }
 
 export const CodeSamples: React.FC<CodeSamplesProps> = ({
   method,
   url,
   headers = {},
-  body
+  body,
 }) => {
-  const [activeTab, setActiveTab] = useState<'node' | 'python' | 'curl' | 'go' | 'java' | 'php'>('node');
   const [copied, setCopied] = useState(false);
   const { theme } = useTheme();
+  const [activeLangTab, setActiveLangTab] = useState<'node' | 'python' | 'curl' | 'go' | 'java' | 'php'>('node');
 
   const getNodeAxiosCode = () => {
     const code = [
@@ -187,18 +187,35 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
   };
 
   const handleCopy = async () => {
-    const code = activeTab === 'node' ? getNodeAxiosCode() :
-      activeTab === 'python' ? getPythonRequestsCode() :
-      activeTab === 'go' ? getGoCode() :
-      activeTab === 'java' ? getJavaCode() :
-      activeTab === 'php' ? getPhpCode() :
-        getCurlCode();
-    await navigator.clipboard.writeText(code);
+    let codeContent;
+    switch (activeLangTab) {
+      case 'curl':
+        codeContent = getCurlCode();
+        break;
+      case 'node':
+        codeContent = getNodeAxiosCode();
+        break;
+      case 'python':
+        codeContent = getPythonRequestsCode();
+        break;
+      case 'go':
+        codeContent = getGoCode();
+        break;
+      case 'java':
+        codeContent = getJavaCode();
+        break;
+      case 'php':
+        codeContent = getPhpCode();
+        break;
+      default:
+        codeContent = '';
+    }
+    await navigator.clipboard.writeText(codeContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getLanguage = (tab: typeof activeTab) => {
+  const getLanguage = (tab: typeof activeLangTab) => {
     switch (tab) {
       case 'node': return 'javascript';
       case 'python': return 'python';
@@ -207,6 +224,33 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
       case 'java': return 'java';
       case 'php': return 'php';
     }
+  };
+
+  const getCodeForLanguage = () => {
+    let codeContent;
+    switch (activeLangTab) {
+      case 'node':
+        codeContent = getNodeAxiosCode();
+        break;
+      case 'python':
+        codeContent = getPythonRequestsCode();
+        break;
+      case 'curl':
+        codeContent = getCurlCode();
+        break;
+      case 'go':
+        codeContent = getGoCode();
+        break;
+      case 'java':
+        codeContent = getJavaCode();
+        break;
+      case 'php':
+        codeContent = getPhpCode();
+        break;
+      default:
+        codeContent = '';
+    }
+    return codeContent;
   };
 
   const tabs = [
@@ -225,8 +269,8 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
         {tabs.map(({ id, label, icon }) => (
           <button
             key={id}
-            onClick={() => setActiveTab(id)}
-            className={`relative px-4 py-3 text-sm font-medium transition-all duration-200 ${activeTab === id
+            onClick={() => setActiveLangTab(id)}
+            className={`relative px-4 py-3 text-sm font-medium transition-all duration-200 ${activeLangTab === id
               ? 'text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-900'
               : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50'
               }`}
@@ -235,7 +279,7 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
               <span>{icon}</span>
               <span>{label}</span>
             </span>
-            {activeTab === id && (
+            {activeLangTab === id && (
               <motion.div
                 layoutId="activeTab"
                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"
@@ -250,7 +294,7 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
       <div className="relative">
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeTab}
+            key={activeLangTab}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -259,7 +303,7 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
           >
             <div className="dark:bg-gray-900">
               <SyntaxHighlighter
-                language={getLanguage(activeTab)}
+                language={getLanguage(activeLangTab)}
                 style={theme === 'dark' ? oneDark : oneLight}
                 customStyle={{
                   margin: 0,
@@ -267,12 +311,7 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
                   fontSize: '0.875rem',
                 }}
               >
-                {activeTab === 'node' ? getNodeAxiosCode() :
-                  activeTab === 'python' ? getPythonRequestsCode() :
-                  activeTab === 'go' ? getGoCode() :
-                  activeTab === 'java' ? getJavaCode() :
-                  activeTab === 'php' ? getPhpCode() :
-                    getCurlCode()}
+                {getCodeForLanguage()}
               </SyntaxHighlighter>
             </div>
           </motion.div>

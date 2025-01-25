@@ -2,6 +2,7 @@ import { ApiDoc } from "@prisma/client";
 import { ApiSpec } from "./types";
 import ReactMarkdown from 'react-markdown';
 import { useEffect, useRef, useState } from 'react';
+import Image from "next/image";
 
 interface ApiDocViewerProps {
     apiDoc: ApiDoc;
@@ -52,7 +53,7 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
                         <div className="absolute -inset-[10px] opacity-50">
                             {[...Array(100)].map((_, i) => (
                                 <div
-                                    key={i}
+                                    key={i.toString() + Math.random().toString()}
                                     className="absolute rounded-full bg-white"
                                     style={{
                                         top: `${Math.random() * 100}%`,
@@ -108,9 +109,9 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
             <div ref={containerRef} className="relative w-full max-w-[95%] xs:max-w-[90%] sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto text-center space-y-4 sm:space-y-6 lg:space-y-8 p-8">
                 {/* Content with glass effect */}
                 <div className="relative space-y-2 xs:space-y-3 sm:space-y-4 backdrop-blur-sm">
-                    <div className="flex items-center justify-center transform transition-transform duration-300 hover:scale-105">
+                    <div className="flex items-center justify-center transform transition-transform duration-300 hover:scale-105 fade-in">
                         {apiDoc?.logo ? (
-                            <img src={apiDoc.logo} alt="API Logo" className="h-10 xs:h-12 sm:h-14 lg:h-16 w-auto filter hover:brightness-110 transition-all duration-300" />
+                            <Image width={60} height={60} src={apiDoc.logo} alt="API Logo" className="h-10 xs:h-12 sm:h-14 lg:h-16 w-auto filter hover:brightness-110 transition-all duration-300" />
                         ) : (
                             <div className="relative group">
                                 <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-300" />
@@ -120,18 +121,18 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
                             </div>
                         )}
                     </div>
-                    <h1 className="relative text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold">
+                    <h1 className="relative text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold fade-in">
                         <span className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 dark:from-indigo-400/20 dark:to-purple-400/20 blur-xl" />
                         <span className="relative bg-gradient-to-r from-gray-900 via-indigo-900 to-gray-900 dark:from-white dark:via-indigo-100 dark:to-white bg-clip-text text-transparent">
                             {spec?.info?.title || 'API Documentation'}
                         </span>
                     </h1>
-                    <div className="relative text-sm xs:text-base sm:text-lg text-gray-700 dark:text-gray-300/90 max-w-xs xs:max-w-sm sm:max-w-xl lg:max-w-2xl mx-auto px-2 prose dark:prose-invert">
+                    <div className="relative text-sm xs:text-base sm:text-lg text-gray-700 dark:text-gray-300/90 max-w-xs xs:max-w-sm sm:max-w-xl lg:max-w-2xl mx-auto px-2 prose dark:prose-invert fade-in">
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 dark:from-indigo-400/10 dark:to-purple-400/10 blur-lg" />
                             <div className="relative">
                                 <ReactMarkdown>
-                                    {spec?.info?.description || 'Welcome to our API documentation. Select an endpoint from the sidebar to get started.'}
+                                    {spec?.info?.description ?? 'Welcome to our API documentation. Select an endpoint from the sidebar to get started.'}
                                 </ReactMarkdown>
                             </div>
                         </div>
@@ -141,7 +142,7 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
                 {/* API Info Cards */}
                 <div className="relative grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 lg:gap-6 text-left px-2">
                     {/* Version Info Card */}
-                    <div className="group relative">
+                    <div className="group relative fade-in">
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-75 transition duration-300" />
                         <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl p-3 xs:p-4 sm:p-5 lg:p-6 rounded-xl border border-gray-200/50 dark:border-white/10 hover:border-indigo-500/50 transition-all duration-300 h-full">
                             <h3 className="text-xs sm:text-sm font-medium text-indigo-700 dark:text-indigo-300 uppercase tracking-wider mb-2 sm:mb-4 flex items-center">
@@ -173,7 +174,7 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
                     </div>
 
                     {/* Server Info Card */}
-                    <div className="group relative">
+                    <div className="group relative fade-in">
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl blur opacity-20 group-hover:opacity-75 transition duration-300" />
                         <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl p-3 xs:p-4 sm:p-5 lg:p-6 rounded-xl border border-gray-200/50 dark:border-white/10 hover:border-purple-500/50 transition-all duration-300 h-full">
                             <h3 className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-300 uppercase tracking-wider mb-2 sm:mb-4 flex items-center">
@@ -184,7 +185,7 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
                             </h3>
                             <div className="space-y-2 sm:space-y-3">
                                 {spec?.servers?.map((server, index) => (
-                                    <div key={index} className="text-xs sm:text-sm">
+                                    <div key={index.toString() + Math.random().toString()} className="text-xs sm:text-sm">
                                         <div className="font-medium text-gray-600 dark:text-gray-400">Server {index + 1}</div>
                                         <div className="mt-1 text-gray-900 dark:text-white">{server.url}</div>
                                         {server.description && (
@@ -197,7 +198,7 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
                     </div>
 
                     {/* Quick Start Card */}
-                    <div className="group relative">
+                    <div className="group relative fade-in">
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl blur opacity-20 group-hover:opacity-75 transition duration-300" />
                         <div className="relative bg-white/80 dark:bg-black/40 backdrop-blur-xl p-3 xs:p-4 sm:p-5 lg:p-6 rounded-xl border border-gray-200/50 dark:border-white/10 hover:border-blue-500/50 transition-all duration-300 h-full">
                             <h3 className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider mb-2 sm:mb-4 flex items-center">
