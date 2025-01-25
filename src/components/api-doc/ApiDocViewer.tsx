@@ -5,9 +5,9 @@ import { ApiDocViewerProps, ApiEndpoint, ApiSpec } from './types';
 import { OpenAPIV3 } from 'openapi-types';
 import { fetchApiSpec } from './utils';
 import { Sidebar } from './Sidebar';
-import { EndpointDetail } from './EndpointDetail/EndpointDetail';
 import { useSearchParams, usePathname } from 'next/navigation';
 import Overview from './Overview';
+import { EndpointDetail } from './EndpointDetail/EndpointDetail';
 
 
 export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {

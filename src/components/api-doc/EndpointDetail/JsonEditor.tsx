@@ -11,12 +11,14 @@ interface JsonEditorProps {
   value: string;
   onChange: (value: string) => void;
   height?: string;
+  is_editable?: boolean;
 }
 
 export const JsonEditor: React.FC<JsonEditorProps> = ({
   value,
   onChange,
-  height = "100px"
+  height = "100px",
+  is_editable = true
 }) => {
   const { theme, systemTheme } = useTheme();
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -133,12 +135,14 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
         </button>
       </div>
       <Editor
+
         height={height}
         defaultLanguage="json"
         value={value}
         onChange={handleEditorChange}
         onMount={handleEditorDidMount}
         options={{
+          readOnly: !is_editable,
           minimap: { enabled: false },
           fontSize: 13,
           lineNumbers: 'on',

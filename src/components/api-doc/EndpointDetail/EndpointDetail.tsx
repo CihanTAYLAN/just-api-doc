@@ -3,16 +3,17 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { OpenAPIV3 } from 'openapi-types';
 import { ApiEndpoint, ApiSpec } from '../types';
 import { ApiDoc } from '@prisma/client';
-import { EndpointUrlBar } from './EndpointUrlBar';
 import { CodeSamples } from './CodeSamples';
 import { generateExampleFromSchema } from '../utils/schemaToExample';
 import { resolveSchema } from '../utils/resolveSchema';
 import { JsonEditor } from './JsonEditor';
-import { Headers } from './Headers';
-import { RequestBodySection } from './RequestBodySection';
-import { ResponseSection } from './ResponseSection';
 import { motion } from 'framer-motion';
 import { PiLockKey, PiSealWarning } from 'react-icons/pi';
+import { ResponseSection } from './ResponseSection';
+import { RequestBodySection } from './RequestBodySection';
+import { EndpointUrlBar } from './EndpointUrlBar';
+import { Headers } from './Headers';
+import { DocumentationSection } from './DocumentationSection';
 
 interface EndpointDetailProps {
   path: string;
@@ -25,7 +26,8 @@ interface EndpointDetailProps {
 }
 
 enum TTab {
-  TRY = 'try',
+  PLAYGROUND = 'playground',
+  DOCUMENTATION = 'documentation',
   CODE = 'code'
 }
 
@@ -41,7 +43,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const [selectedServer, setSelectedServer] = useState(spec.servers?.[0]?.url ?? 'localhost:3000');
   const [requestBody, setRequestBody] = useState<Record<string, unknown> | null>(null);
   const [queryParams, setQueryParams] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<TTab>(TTab.TRY);
+  const [activeTab, setActiveTab] = useState<TTab>(TTab.PLAYGROUND);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<{
     status: number;
@@ -50,8 +52,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     data: unknown;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [securitySchemes, setSecuritySchemes] = useState<Array<{ type: string; name: string; in: string }>>([]);
-  const [headerValues, setHeaderValues] = useState<Record<string, string>>({});
   const [selectedContentType, setSelectedContentType] = useState<string>('');
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [pathParams, setPathParams] = useState<Record<string, string>>({});
@@ -67,7 +67,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   }, [localHeaders, apiDoc?.id]);
 
-  // Reset and initialize state when endpoint changes
+  // Reset and initialize state when d changes
   useEffect(() => {
     const initializeState = async () => {
       // Reset all states
@@ -174,7 +174,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     headers.forEach(header => {
       newHeaderValues[header.key.toLowerCase()] = header.value;
     });
-    setHeaderValues(newHeaderValues);
   }, []);
 
   // Handle form data changes
@@ -340,7 +339,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   // Extract security schemes from OpenAPI spec
   useEffect(() => {
     if (!endpoint?.security || !spec.components?.securitySchemes) {
-      setSecuritySchemes([]);
       return;
     }
 
@@ -367,7 +365,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       }
     });
 
-    setSecuritySchemes(schemes);
   }, [endpoint?.security, spec.components?.securitySchemes]);
 
   // Check if endpoint requires authentication
@@ -533,15 +530,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   }, [endpoint.requestBody, selectedContentType, requestBody, spec, setRequestBody]);
 
-  // Helper function to convert header values to strings
-  const convertHeadersToString = (headers: Record<string, string | number | boolean | string[] | null>): Record<string, string> => {
-    const stringHeaders: Record<string, string> = {};
-    for (const [key, value] of Object.entries(headers)) {
-      stringHeaders[key] = value === null ? '' : Array.isArray(value) ? value.join(', ') : String(value);
-    }
-    return stringHeaders;
-  };
-
   const handleSendRequest = async () => {
     try {
       setLoading(true);
@@ -706,6 +694,175 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     localStorage.setItem(`pathParams-${apiDoc.id}`, JSON.stringify(newParams));
   };
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+
+      case TTab.PLAYGROUND:
+        return (
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {/* URL Bar */}
+            <div className="p-4 px-1">
+              <EndpointUrlBar
+                servers={spec.servers || []}
+                selectedServer={selectedServer}
+                onServerChange={setSelectedServer}
+                path={getUrlWithPathParams(path)}
+                method={method}
+              />
+            </div>
+
+            {/* Path Parameters Section */}
+            {endpoint.parameters?.some(param => (param as OpenAPIV3.ParameterObject).in === 'path') && (
+              <div className="p-4 px-1">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Path Parameters</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {endpoint.parameters
+                      .filter(param => (param as OpenAPIV3.ParameterObject).in === 'path')
+                      .map(param => (
+                        <motion.div
+                          key={(param as OpenAPIV3.ParameterObject).name}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="group relative"
+                        >
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <div className="flex items-center gap-1">
+                              {(param as OpenAPIV3.ParameterObject).name}
+                              {(param as OpenAPIV3.ParameterObject).required && (
+                                <span className="text-red-500 text-xs">*</span>
+                              )}
+                              {(param as OpenAPIV3.ParameterObject).description && (
+                                <div className="relative">
+                                  <svg className="w-4 h-4 text-gray-400 hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                    {(param as OpenAPIV3.ParameterObject).description}
+                                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800"></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </label>
+                          <input
+                            type="text"
+                            value={pathParams[(param as OpenAPIV3.ParameterObject).name] || ''}
+                            onChange={(e) => handlePathParamChange((param as OpenAPIV3.ParameterObject).name, e.target.value)}
+                            placeholder={(param as OpenAPIV3.ParameterObject).description || (param as OpenAPIV3.ParameterObject).name}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 
+                                         bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                         transition-shadow duration-200"
+                          />
+                        </motion.div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Request Configuration Section */}
+            <div className="p-4 px-1 space-y-6">
+              {/* Headers and Body Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Headers Section */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-4"
+                >
+                  <Headers
+                    headers={localHeaders}
+                    onHeaderChange={handleHeaderChange}
+                  />
+                </motion.div>
+
+                {/* Request Body Section */}
+                {endpoint.requestBody && !('$ref' in endpoint.requestBody) && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                  >
+                    <RequestBodySection requestBody={endpoint.requestBody}>
+                      {renderRequestBody}
+                    </RequestBodySection>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Send Request Button */}
+              <div className="flex items-center justify-between mt-6">
+                <button
+                  onClick={handleSendRequest}
+                  disabled={loading}
+                  className={`inline-flex items-center px-6 py-2.5 text-sm font-medium rounded-lg
+                        transition-all duration-200 transform hover:scale-105 active:scale-95
+                        ${loading
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                    } text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Sending Request...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span>Send Request</span>
+                    </>
+                  )}
+                </button>
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </div>
+            </div>
+
+            {/* Response Section */}
+            <ResponseSection response={response} sending={loading} />
+          </div>
+        );
+      case TTab.DOCUMENTATION:
+        return <div className="p-4 px-1">
+          <DocumentationSection
+            endpoint={endpoint}
+            spec={spec}
+          />
+        </div>;
+
+      case TTab.CODE:
+        return <div className="p-4 px-1">
+          <CodeSamples
+            method={method}
+            url={`${selectedServer || 'http://localhost'}${path}`}
+            headers={localHeaders.reduce((acc, header) => ({
+              ...acc,
+              [header.key]: header.value
+            }), {})}
+            body={requestBody || undefined}
+          />
+        </div>
+
+      default:
+        return <>Error</>;
+    }
+
+  };
+
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-900 p-4">
       {/* Header */}
@@ -713,8 +870,9 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         <div className="flex flex-col">
           {/* Method and Path */}
           <div className="flex items-center gap-2 mb-2 min-h-[26px]">
+            <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-gray-300">{endpoint?.operationId}</span>
             <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{path}</div>
-            {endpoint.deprecated && (
+            {endpoint?.deprecated && (
               <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-full group relative">
                 <PiSealWarning />
                 <span>Deprecated</span>
@@ -759,9 +917,9 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
               </div>
             )}
           </div>
-          {endpoint.description && (
+          {endpoint?.description && (
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              {endpoint.description}
+              {endpoint?.description}
             </div>
           )}
         </div>
@@ -771,23 +929,39 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       <div className="flex-none border-b border-gray-200 dark:border-gray-700">
         <div className="flex gap-2 p-2">
           <button
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === TTab.TRY
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === TTab.PLAYGROUND
               ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
               : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             onClick={() => {
-              setActiveTab(TTab.TRY)
+              setActiveTab(TTab.PLAYGROUND)
             }}
           >
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Try it out
+              Playground
             </div>
           </button>
           <button
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === 'code'
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === TTab.DOCUMENTATION
+              ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+              : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+            onClick={() => {
+              setActiveTab(TTab.DOCUMENTATION)
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Documentation
+            </div>
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === TTab.CODE
               ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
               : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
@@ -813,155 +987,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
           transition={{ duration: 0.2 }}
           className="relative"
         >
-          {(activeTab === TTab.TRY) ?
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {/* URL Bar */}
-              <div className="p-4 px-1">
-                <EndpointUrlBar
-                  servers={spec.servers || []}
-                  selectedServer={selectedServer}
-                  onServerChange={setSelectedServer}
-                  path={getUrlWithPathParams(path)}
-                  method={method}
-                />
-              </div>
-
-              {/* Path Parameters Section */}
-              {endpoint.parameters?.some(param => (param as OpenAPIV3.ParameterObject).in === 'path') && (
-                <div className="p-4 px-1">
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Path Parameters</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {endpoint.parameters
-                        .filter(param => (param as OpenAPIV3.ParameterObject).in === 'path')
-                        .map(param => (
-                          <motion.div
-                            key={(param as OpenAPIV3.ParameterObject).name}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="group relative"
-                          >
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              <div className="flex items-center gap-1">
-                                {(param as OpenAPIV3.ParameterObject).name}
-                                {(param as OpenAPIV3.ParameterObject).required && (
-                                  <span className="text-red-500 text-xs">*</span>
-                                )}
-                                {(param as OpenAPIV3.ParameterObject).description && (
-                                  <div className="relative">
-                                    <svg className="w-4 h-4 text-gray-400 hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                      {(param as OpenAPIV3.ParameterObject).description}
-                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800"></div>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </label>
-                            <input
-                              type="text"
-                              value={pathParams[(param as OpenAPIV3.ParameterObject).name] || ''}
-                              onChange={(e) => handlePathParamChange((param as OpenAPIV3.ParameterObject).name, e.target.value)}
-                              placeholder={(param as OpenAPIV3.ParameterObject).description || (param as OpenAPIV3.ParameterObject).name}
-                              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 
-                                         bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                                         transition-shadow duration-200"
-                            />
-                          </motion.div>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Request Configuration Section */}
-              <div className="p-4 px-1 space-y-6">
-                {/* Headers and Body Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Headers Section */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                  >
-                    <Headers
-                      headers={localHeaders}
-                      onHeaderChange={handleHeaderChange}
-                    />
-                  </motion.div>
-
-                  {/* Request Body Section */}
-                  {endpoint.requestBody && !('$ref' in endpoint.requestBody) && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                    >
-                      <RequestBodySection requestBody={endpoint.requestBody}>
-                        {renderRequestBody}
-                      </RequestBodySection>
-                    </motion.div>
-                  )}
-                </div>
-
-                {/* Send Request Button */}
-                <div className="flex items-center justify-between mt-6">
-                  <button
-                    onClick={handleSendRequest}
-                    disabled={loading}
-                    className={`inline-flex items-center px-6 py-2.5 text-sm font-medium rounded-lg
-                        transition-all duration-200 transform hover:scale-105 active:scale-95
-                        ${loading
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                      } text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-                  >
-                    {loading ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Sending Request...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        <span>Send Request</span>
-                      </>
-                    )}
-                  </button>
-                  {error && (
-                    <motion.p
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg"
-                    >
-                      {error}
-                    </motion.p>
-                  )}
-                </div>
-              </div>
-
-              {/* Response Section */}
-              <ResponseSection response={response} sending={loading} />
-            </div>
-            :
-            <div className="p-4 px-1">
-              <CodeSamples
-                method={method}
-                url={`${selectedServer || 'http://localhost'}${path}`}
-                headers={localHeaders.reduce((acc, header) => ({
-                  ...acc,
-                  [header.key]: header.value
-                }), {})}
-                body={requestBody || undefined}
-              />
-            </div>
+          {
+            renderTabContent()
           }
         </motion.div>
       </div>
