@@ -1,4 +1,5 @@
 import { ApiDoc } from "@prisma/client";
+import { OpenAPIV3 } from 'openapi-types';
 
 export type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options' | 'trace';
 
@@ -11,120 +12,24 @@ export interface ApiDocViewerProps {
   };
 }
 
-export interface Reference {
-  $ref: string;
-}
+export type Reference = OpenAPIV3.ReferenceObject;
 
-export interface Schema {
-  $schema?: string;
-  $vocabulary?: { [uri: string]: boolean };
-  $id?: string;
-  $anchor?: string;
-  $dynamicAnchor?: string;
-  $ref?: string;
-  $dynamicRef?: string;
-  $defs?: { [key: string]: Schema };
-  $comment?: string;
-  
-  type?: string | string[];
-  format?: string;
-  
-  minimum?: number;
-  maximum?: number;
-  exclusiveMinimum?: number | boolean;
-  exclusiveMaximum?: number | boolean;
-  multipleOf?: number;
-  
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  contentEncoding?: string;
-  contentMediaType?: string;
-  contentSchema?: Schema;
-  
-  minItems?: number;
-  maxItems?: number;
-  uniqueItems?: boolean;
-  maxContains?: number;
-  minContains?: number;
-  
-  minProperties?: number;
-  maxProperties?: number;
-  required?: string[];
-  dependentRequired?: { [key: string]: string[] };
-  
-  enum?: any[];
-  const?: any;
-  default?: any;
-  
-  allOf?: Schema[];
-  anyOf?: Schema[];
-  oneOf?: Schema[];
-  not?: Schema;
-  if?: Schema;
-  then?: Schema;
-  else?: Schema;
-  
-  properties?: { [key: string]: Schema };
-  patternProperties?: { [key: string]: Schema };
-  additionalProperties?: boolean | Schema;
-  propertyNames?: Schema;
-  unevaluatedProperties?: boolean | Schema;
-  
-  items?: Schema | Schema[];
-  prefixItems?: Schema[];
-  contains?: Schema;
-  unevaluatedItems?: boolean | Schema;
-  
-  discriminator?: {
-    propertyName: string;
-    mapping?: { [key: string]: string };
-  };
-  xml?: {
-    name?: string;
-    namespace?: string;
-    prefix?: string;
-    attribute?: boolean;
-    wrapped?: boolean;
-  };
-  externalDocs?: {
-    description?: string;
-    url: string;
-  };
-  example?: any;
-  examples?: any[];
-  deprecated?: boolean;
-  readOnly?: boolean;
-  writeOnly?: boolean;
-  nullable?: boolean;
-}
+export type SchemaType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'null';
 
-export interface Parameter {
-  name: string;
-  in: 'query' | 'header' | 'path' | 'cookie';
-  description?: string;
-  required?: boolean;
-  deprecated?: boolean;
-  allowEmptyValue?: boolean;
-  style?: 'form' | 'simple' | 'label' | 'matrix' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject';
-  explode?: boolean;
-  allowReserved?: boolean;
-  schema?: Schema | Reference;
-  example?: any;
-  examples?: { [key: string]: Example | Reference };
-  content?: { [key: string]: MediaType };
-}
+export type Schema = OpenAPIV3.SchemaObject;
+
+export type Parameter = OpenAPIV3.ParameterObject;
 
 export interface Example {
   summary?: string;
   description?: string;
-  value?: any;
+  value?: string | number | boolean | object | null;
   externalValue?: string;
 }
 
 export interface MediaType {
   schema?: Schema | Reference;
-  example?: any;
+  example?: string | number | boolean | object | null;
   examples?: { [key: string]: Example | Reference };
   encoding?: { [key: string]: Encoding };
 }
@@ -161,8 +66,8 @@ export interface Header {
 export interface Link {
   operationRef?: string;
   operationId?: string;
-  parameters?: { [key: string]: any };
-  requestBody?: any;
+  parameters?: { [key: string]: string | number | boolean | object };
+  requestBody?: string | number | boolean | object;
   description?: string;
   server?: Server;
 }
@@ -224,6 +129,15 @@ export interface ApiEndpoint {
   operationId?: string;
 }
 
+export type PathItem = {
+  summary?: string;
+  description?: string;
+  servers?: Server[];
+  parameters?: (Parameter | Reference)[];
+} & {
+  [K in HttpMethod]?: ApiEndpoint;
+};
+
 export interface ApiSpec {
   openapi: string;
   jsonSchemaDialect?: string;
@@ -245,13 +159,7 @@ export interface ApiSpec {
   };
   servers?: Server[];
   paths: {
-    [path: string]: {
-      summary?: string;
-      description?: string;
-      servers?: Server[];
-      parameters?: (Parameter | Reference)[];
-      [method in HttpMethod]?: ApiEndpoint;
-    };
+    [path: string]: PathItem;
   };
   webhooks?: {
     [key: string]: ApiEndpoint | Reference;

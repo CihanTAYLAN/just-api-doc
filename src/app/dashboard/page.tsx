@@ -1,16 +1,17 @@
-"use client"
-
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
-import { ApiDoc } from "@prisma/client"
-import CreateApiDocButton from "@/components/CreateApiDocButton"
-import EditApiDocForm from "@/components/EditApiDocForm"
-import ApiDocList from "@/components/ApiDocList"
-import EmptyState from "@/components/EmptyState"
-import DashboardLoading from "./loading"
+"use client";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { ApiDoc } from "@prisma/client";
+import CreateApiDocButton from "@/components/CreateApiDocButton";
+import EditApiDocForm from "@/components/EditApiDocForm";
+import ApiDocList from "@/components/ApiDocList";
+import EmptyState from "@/components/EmptyState";
+import DashboardLoading from "./loading";
+import Metadata from "../../components/MetaData";
 
 export default function DashboardPage() {
+
   const { data: session, status } = useSession()
   const router = useRouter()
   const [apiDocs, setApiDocs] = useState<ApiDoc[]>([])
@@ -96,9 +97,15 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen-custom">
+      <Metadata
+        seoTitle={'Dashboard - Just API Doc'}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Your API Docs</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Your API Docs
+          </h1>
           <CreateApiDocButton onClick={() => setIsCreateModalOpen(true)} />
         </div>
 

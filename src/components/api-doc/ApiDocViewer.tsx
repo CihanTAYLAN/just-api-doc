@@ -1,16 +1,16 @@
-"use client";
-
+"use client";;
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { ApiDocViewerProps, ApiEndpoint, ApiSpec } from './types';
+import { OpenAPIV3 } from 'openapi-types';
 import { fetchApiSpec } from './utils';
 import { Sidebar } from './Sidebar';
-import { EndpointDetail } from './EndpointDetail';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import Overview from './Overwiew';
+import { useSearchParams, usePathname } from 'next/navigation';
+import Overview from './Overview';
+import { EndpointDetail } from './EndpointDetail/EndpointDetail';
+
 
 export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -39,8 +39,8 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
           return parsedHeaders;
         }
       }
-    } catch (_) {
-      // console.error('Error loading headers from localStorage:', error);
+    } catch (error) {
+      console.error('Error loading headers from localStorage:', error);
     }
 
     // Default headers with required Content-Type
@@ -74,12 +74,28 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     const group = searchParams.get('group');
 
     // Endpoint varsa yükle
-    if (path && method && spec.paths[path]?.[method]) {
-      const endpoint = spec.paths[path][method] as ApiEndpoint;
-      const tag = endpoint.tags?.[0] || 'Other';
+    if (path && method && spec.paths[path]) {
+      type BasePathItem = {
+        summary?: string;
+        description?: string;
+        servers?: OpenAPIV3.ServerObject[];
+        parameters?: (OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject)[];
+      }
 
-      setSelectedEndpoint({ path, method, endpoint });
-      setOpenGroups(prev => ({ ...prev, [tag]: true }));
+      type PathItem = BasePathItem & {
+        [K in OpenAPIV3.HttpMethods]?: ApiEndpoint;
+      }
+
+      const pathItem: PathItem = spec.paths[path];
+      if (method in pathItem) {
+        const endpoint = pathItem[method as OpenAPIV3.HttpMethods];
+        if (endpoint) {
+          const tag = endpoint.tags?.[0] ?? 'Other';
+
+          setSelectedEndpoint({ path, method, endpoint });
+          setOpenGroups(prev => ({ ...prev, [tag]: true }));
+        }
+      }
     }
 
     // Grup varsa aç
@@ -181,12 +197,12 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     updateUrlSilently({
       path: endpoint.path,
       method: endpoint.method,
-      group: currentGroup || endpoint.endpoint.tags?.[0] || 'Other'
+      group: currentGroup || (endpoint.endpoint.tags && endpoint.endpoint.tags.length > 0 ? endpoint.endpoint.tags[0] : 'Other')
     });
 
     // Endpoint'in tag'ini otomatik olarak aç
-    if (endpoint.endpoint.tags?.[0]) {
-      setOpenGroups(prev => ({ ...prev, [endpoint.endpoint.tags[0]]: true }));
+    if (endpoint.endpoint.tags && endpoint.endpoint.tags.length > 0) {
+      setOpenGroups(prev => ({ ...prev, [endpoint.endpoint.tags![0]]: true }));
     }
   }, [searchParams, updateUrlSilently]);
 
@@ -197,7 +213,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     updateUrlSilently({
       path: undefined,
       method: undefined,
-      group: currentGroup
+      group: currentGroup ?? 'Other'
     });
   }, [searchParams, updateUrlSilently]);
 
@@ -216,13 +232,13 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     Object.entries(spec.paths).forEach(([path, methods]) => {
       Object.entries(methods).forEach(([method, endpoint]) => {
         if (query && !path.toLowerCase().includes(query) &&
-          !(endpoint as ApiEndpoint).summary?.toLowerCase().includes(query) &&
-          !(endpoint as ApiEndpoint).tags?.join(', ')?.toLowerCase().includes(query) &&
-          !(endpoint as ApiEndpoint).description?.toLowerCase().includes(query)) {
+          !(endpoint as unknown as ApiEndpoint).summary?.toLowerCase().includes(query) &&
+          !(endpoint as unknown as ApiEndpoint).tags?.join(', ')?.toLowerCase().includes(query) &&
+          !(endpoint as unknown as ApiEndpoint).description?.toLowerCase().includes(query)) {
           return;
         }
 
-        const tags = (endpoint as ApiEndpoint).tags || [defaultTag];
+        const tags = (endpoint as unknown as ApiEndpoint).tags || [defaultTag];
 
         tags.forEach(tag => {
           if (!groups[tag]) {
@@ -232,7 +248,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
           groups[tag].push({
             path,
             method: method.toUpperCase(),
-            endpoint: endpoint as ApiEndpoint
+            endpoint: endpoint as unknown as ApiEndpoint
           });
         });
       });
@@ -361,7 +377,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Please review your configuration and ensure you've provided the necessary authentication credentials. You can update these settings in the API documentation configuration.
+                      Please review your configuration and ensure you&apos;ve provided the necessary authentication credentials. You can update these settings in the API documentation configuration.
                     </p>
                   </div>
                 </div>
@@ -400,22 +416,18 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
       />
       <div className="flex-1 overflow-auto">
         {selectedEndpoint ? (
-          <div className="h-full px-2 sm:px-4 md:px-6 py-5">
-            <EndpointDetail
-              path={selectedEndpoint.path}
-              method={selectedEndpoint.method}
-              endpoint={selectedEndpoint.endpoint}
-              spec={spec}
-              apiDoc={apiDoc}
-              headers={headers}
-              onHeadersChange={handleHeadersChange}
-            />
-          </div>
+          <EndpointDetail
+            path={selectedEndpoint.path}
+            method={selectedEndpoint.method}
+            endpoint={selectedEndpoint.endpoint}
+            spec={spec}
+            apiDoc={apiDoc}
+            headers={headers}
+            onHeadersChange={handleHeadersChange}
+          />
         ) : (
-          <div className="flex flex-col items-center justify-center min-h-full bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 px-3 py-4 sm:p-4 md:p-6 lg:p-8">
-            {/* Overview */}
-            <Overview apiDoc={apiDoc} spec={spec} />
-          </div>
+          // Overview
+          <Overview apiDoc={apiDoc} spec={spec} />
         )}
       </div>
     </div >

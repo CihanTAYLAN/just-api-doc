@@ -76,7 +76,7 @@ export default function Navbar({ session }: NavbarProps) {
                   >
                     <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
-                        {session.user?.name?.[0] || "U"}
+                        {session.user?.name?.[0] ?? "U"}
                       </span>
                     </div>
                     <span className="text-gray-700 dark:text-gray-300">
@@ -275,7 +275,7 @@ export default function Navbar({ session }: NavbarProps) {
                 Log In
               </Link>
               <Link
-                href="/register"
+                href="/signup"
                 className="block w-full text-center px-4 py-3 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
