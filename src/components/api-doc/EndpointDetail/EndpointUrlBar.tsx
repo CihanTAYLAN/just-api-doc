@@ -1,9 +1,7 @@
-"use client";
-
+"use client";;
 import React from 'react';
-import { Server } from './types';
-import ReactMarkdown from 'react-markdown';
-import { MethodBadge } from './MethodBadge';
+import { Server } from '../types';
+import { MethodBadge } from '../MethodBadge';
 
 interface EndpointUrlBarProps {
   servers: Server[];
@@ -27,7 +25,7 @@ export const EndpointUrlBar: React.FC<EndpointUrlBarProps> = ({
   };
 
   return (
-    <>
+    <div>
       <div className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-sm">
         <MethodBadge method={method} />
         {servers.length > 1 && <select
@@ -37,12 +35,12 @@ export const EndpointUrlBar: React.FC<EndpointUrlBarProps> = ({
         >
           {servers.map((server) => (
             <option key={server.url} value={server.url}>
-              <ReactMarkdown>{server.description || server.url}</ReactMarkdown>
+              {server.description || server.url}
             </option>
           ))}
         </select>}
         <div className="flex-1 flex items-center">
-          <code className="text-gray-900 dark:text-gray-100 font-mono">{path}</code>
+          <code className="text-gray-900 dark:text-gray-100 font-mono">{decodeURIComponent(path)}</code>
         </div>
         <button
           onClick={copyToClipboard}
@@ -54,7 +52,7 @@ export const EndpointUrlBar: React.FC<EndpointUrlBarProps> = ({
           </svg>
         </button>
       </div>
-      <div className="text-gray-500 dark:text-gray-400 text-sm font-mono truncate mt-1">{fullUrl}</div>
-    </>
+      <div className="text-gray-500 dark:text-gray-400 text-sm font-mono truncate mt-1">{decodeURIComponent(fullUrl)}</div>
+    </div>
   );
 };

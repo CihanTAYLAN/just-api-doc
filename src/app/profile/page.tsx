@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useTheme } from "next-themes";
+import Metadata from "../../components/MetaData";
 
 const getInitials = (name: string): string => {
   if (!name) return "U";
@@ -228,6 +229,7 @@ const ProfilePage = () => {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <Metadata seoTitle={"Profile - Just API Doc"} />
       <div className="space-y-6">
         {/* Profile Picture Card */}
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { ApiEndpoint } from './types';
+import { ApiEndpoint } from '../types';
 
 interface ParametersProps {
   parameters: ApiEndpoint['parameters'];
@@ -9,7 +9,7 @@ interface ParametersProps {
 
 export const Parameters: React.FC<ParametersProps> = ({ parameters }) => {
   if (!parameters?.length) return null;
-  
+
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold">Parameters</h3>
