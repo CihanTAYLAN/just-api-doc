@@ -14,6 +14,7 @@ export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
 }) => {
   if (!requestBody) return null;
 
+
   return (
     <div>
       <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Request Body</h3>

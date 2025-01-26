@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { OpenAPIV3 } from "openapi-types";
 import { ApiEndpoint, ApiSpec } from "../types";
@@ -7,17 +6,17 @@ import { ApiDoc } from "@prisma/client";
 import { CodeSamples } from "./CodeSamples";
 import { generateExampleFromSchema } from "../utils/schemaToExample";
 import { resolveSchema } from "../utils/resolveSchema";
-import { JsonEditor } from "./JsonEditor";
 import { motion } from "framer-motion";
 import { PiLockKey, PiSealWarning } from "react-icons/pi";
 import { ResponseSection } from "./ResponseSection";
 import { RequestBodySection } from "./RequestBodySection";
 import { EndpointUrlBar } from "./EndpointUrlBar";
 import { Headers } from "./Headers";
-import { Parameters } from "./Parameters";
 import { DocumentationSection } from "./DocumentationSection";
 import { useRouter, useSearchParams } from "next/navigation";
 import classNames from "classnames";
+import { JsonEditor } from "./JsonEditor";
+import { TEXT_STYLES, BADGE_STYLES, BUTTON_STYLES } from "./styles";
 
 interface EndpointDetailProps {
   path: string;
@@ -37,30 +36,7 @@ enum TTab {
   CODE = "code",
 }
 
-const TEXT_STYLES = {
-  heading: "text-lg font-semibold text-gray-900 dark:text-gray-100",
-  subheading: "text-lg font-medium text-gray-700 dark:text-gray-300",
-  body: "text-sm text-gray-600 dark:text-gray-400",
-  small: "text-xs text-gray-500 dark:text-gray-500",
-  code: "font-mono text-xs text-gray-800 dark:text-gray-200",
-  link: "text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300",
-};
 
-const BADGE_STYLES = {
-  primary: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300",
-  warning:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300",
-  error: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300",
-  neutral: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-};
-
-const BUTTON_STYLES = {
-  primary:
-    "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white",
-  secondary:
-    "bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300",
-  disabled: "bg-gray-400 text-gray-200 cursor-not-allowed",
-};
 
 export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   path,
@@ -292,7 +268,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const updateTab = (newTab: TTab) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", newTab);
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.replace(`?${params.toString()}`, { scroll: false });
     setActiveTab(newTab);
   };
 
@@ -671,6 +647,145 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     return keys;
   }, [endpoint.security]);
 
+  const renderRequestBody = useMemo(() => {
+    if (!endpoint.requestBody) return null;
+
+    // Check if it's a reference object
+    if ('$ref' in endpoint.requestBody) {
+      // Handle reference object if needed
+      return null;
+    }
+
+    // At this point TypeScript knows it's a RequestBody
+    if (!endpoint.requestBody.content || !selectedContentType) return null;
+
+    const content = endpoint.requestBody.content[selectedContentType];
+    if (!content) return null;
+
+    switch (selectedContentType) {
+      case 'application/json':
+        const jsonValue = (() => {
+          try {
+            if (requestBody) {
+              return typeof requestBody === 'string'
+                ? requestBody
+                : JSON.stringify(requestBody, null, 2);
+            }
+
+            // Generate example from schema if no request body
+            const schema = content.schema;
+            if (!schema) return '{}';
+
+            const resolvedSchema = resolveSchema(schema, spec);
+            const example = generateExampleFromSchema(resolvedSchema);
+            if (!requestBody) {
+              setRequestBody(JSON.stringify(example, null, 2));
+            }
+            return JSON.stringify(example, null, 2);
+          } catch (error) {
+            console.error('Error preparing JSON:', error);
+            return '{}';
+          }
+        })();
+
+        return (
+          <JsonEditor
+            value={jsonValue}
+            onChange={(value) => {
+              try {
+                const parsedJson = JSON.parse(value);
+                setRequestBody(parsedJson);
+              } catch {
+                setRequestBody({});
+              }
+            }}
+            height="200px"
+          />
+        );
+
+      case 'multipart/form-data':
+      case 'application/x-www-form-urlencoded': {
+        const schema = content.schema as OpenAPIV3.SchemaObject;
+        const properties = schema.properties || {};
+
+        return (
+          <div className="space-y-4">
+            <div className="space-y-3">
+              {Object.entries(properties).map(([key, prop]) => {
+                const property = prop as OpenAPIV3.SchemaObject;
+                return (
+                  <div key={key} className="flex items-center gap-2 min-w-[200px] group">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1 whitespace-nowrap">
+                      {key}
+                      {schema.required?.includes(key) && <span className="text-red-500">*</span>}
+                    </label>
+                    {selectedContentType === 'multipart/form-data' && property.type === 'string' && property.format === 'binary' ? (
+                      <input
+                        type="file"
+                        className="block w-full text-sm text-gray-500 dark:text-gray-400
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          dark:file:bg-blue-900/20 dark:file:text-blue-200
+                          hover:file:bg-blue-100 dark:hover:file:bg-blue-900/30"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFormDataChange(key, file.name);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <input
+                        type={property.format === 'password' ? 'password' : 'text'}
+                        className="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm"
+                        value={formData[key] || ''}
+                        onChange={(e) => handleFormDataChange(key, e.target.value)}
+                        placeholder={property.description || `Enter ${key}`}
+                      />
+                    )}
+                    {property.description && (
+                      <div className="hidden group-hover:block absolute bg-gray-800 text-white text-xs rounded p-2 z-10 mt-1 -translate-y-12">
+                        {property.description}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      default:
+        return (
+          <div className="space-y-4">
+            <div className="relative">
+              <textarea
+                className="w-full h-64 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm font-mono"
+                value={requestBody ? JSON.stringify(requestBody, null, 2) : ''}
+                onChange={(e) => {
+                  try {
+                    const value = e.target.value;
+                    if (!value.trim()) {
+                      setRequestBody(null);
+                    } else {
+                      const parsedJson = JSON.parse(value);
+                      setRequestBody(parsedJson);
+                    }
+                  } catch {
+                    setRequestBody({});
+                  }
+                }}
+                placeholder={`Enter ${selectedContentType} request body`}
+              />
+            </div>
+          </div>
+        );
+    }
+  }, [endpoint.requestBody, selectedContentType, requestBody, spec, setRequestBody]);
+
   // Memoize tab contents
   const playgroundContent = useMemo(
     () => (
@@ -686,26 +801,33 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             onPathParamsChange={setPathParams}
           />
 
-          <Headers
-            headers={localHeaders}
-            onHeadersChange={handleHeaderChange}
-          />
+          <div className="space-y-4 flex flex-row">
+            {/* Headers Section */}
+            <div className="flex-1">
+              <Headers
+                headers={localHeaders}
+                onHeadersChange={handleHeaderChange}
+              />
+            </div>
 
-          {/* Request Body Section */}
-          <div>
-            <h3 className={TEXT_STYLES.subheading}>Request Body</h3>
-            <RequestBodySection
-              endpoint={endpoint}
-              spec={spec}
-              requestBody={requestBody}
-              setRequestBody={setRequestBody}
-              selectedContentType={selectedContentType}
-              setSelectedContentType={setSelectedContentType}
-              formData={formData}
-              onFormDataChange={handleFormDataChange}
-            />
+            {/* Request Body Section */}
+            <div className="flex-1">
+              <h3 className={TEXT_STYLES.subheading}>Request Body</h3>
+              <RequestBodySection
+                endpoint={endpoint}
+                spec={spec}
+                requestBody={requestBody}
+                setRequestBody={setRequestBody}
+                selectedContentType={selectedContentType}
+                setSelectedContentType={setSelectedContentType}
+                formData={formData}
+                onFormDataChange={handleFormDataChange}
+              >
+                {renderRequestBody}
+              </RequestBodySection>
+            </div>
+
           </div>
-
           {/* Send Request Button */}
           <div className="flex items-center space-x-4">
             <button
@@ -871,13 +993,13 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
           <div className="flex items-center gap-2 mb-2">
             <span
               className={classNames(
-                "px-2.5 py-0.5 rounded-sm",
+                "text-xs py-0.5 px-1.5 rounded",
                 BADGE_STYLES.neutral
               )}
             >
               {endpoint?.operationId}
             </span>
-            <div className={TEXT_STYLES.subheading}>{path}</div>
+            <div className={TEXT_STYLES.small}>{path}</div>
             {endpoint?.deprecated && (
               <div
                 className={classNames(

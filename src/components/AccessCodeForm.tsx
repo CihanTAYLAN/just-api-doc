@@ -30,14 +30,14 @@ export default function AccessCodeForm({ docId, docName }: AccessCodeFormProps) 
 
     try {
       const response = await fetch(`/api/api-docs/${docId}?code=${encodeURIComponent(code)}`)
-      
+
       if (!response.ok) {
         throw new Error("Invalid access code")
       }
 
       // If successful, redirect to the doc page with the access code
-      router.push(`/docs/${docId}?code=${encodeURIComponent(code)}`)
-    } catch (error) {
+      router.replace(`/docs/${docId}?code=${encodeURIComponent(code)}`)
+    } catch {
       setError("Invalid access code. Please try again.")
       setLoading(false)
     }
