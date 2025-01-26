@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { ApiDocViewerProps, ApiEndpoint, ApiSpec } from './types';
@@ -109,7 +109,6 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   // URL'i sessizce güncelle
   const updateUrlSilently = useCallback((params: { path?: string; method?: string; group?: string }) => {
     const urlParams = new URLSearchParams(searchParams.toString());
-
     Object.entries(params).forEach(([key, value]) => {
       if (value) {
         urlParams.set(key, value);

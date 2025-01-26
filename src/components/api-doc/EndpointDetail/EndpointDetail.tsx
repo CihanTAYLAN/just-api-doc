@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { OpenAPIV3 } from "openapi-types";
 import { ApiEndpoint, ApiSpec } from "../types";
@@ -13,7 +13,7 @@ import { RequestBodySection } from "./RequestBodySection";
 import { EndpointUrlBar } from "./EndpointUrlBar";
 import { Headers } from "./Headers";
 import { DocumentationSection } from "./DocumentationSection";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import classNames from "classnames";
 import { TEXT_STYLES, BADGE_STYLES, BUTTON_STYLES } from "./styles";
 
@@ -77,7 +77,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     Array<{ key: string; value: string; required?: boolean }>
   >(headers || []);
 
-  const router = useRouter();
 
   // Get current request body or generate from schema if not set
   const getCurrentRequestBody = useCallback(() => {
@@ -253,22 +252,22 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
   // Read tab from URL when component mounts or URL changes
   useEffect(() => {
-    const tabFromUrl = searchParams.get("tab")?.toLowerCase();
-    if (
-      tabFromUrl &&
-      Object.values(TTab).includes(tabFromUrl as TTab) &&
-      activeTab !== tabFromUrl
-    ) {
-      setActiveTab(tabFromUrl as TTab);
-    }
+    // const tabFromUrl = searchParams.get("tab")?.toLowerCase();
+    // if (
+    //   tabFromUrl &&
+    //   Object.values(TTab).includes(tabFromUrl as TTab) &&
+    //   activeTab !== tabFromUrl
+    // ) {
+    //   setActiveTab(tabFromUrl as TTab);
+    // }
   }, [searchParams, activeTab]);
 
   // Update URL when tab changes
   const updateTab = (newTab: TTab) => {
+    setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", newTab);
-    router.replace(`?${params.toString()}`, { scroll: false });
-    setActiveTab(newTab);
+    window.history.replaceState(null, '', `?${params.toString()}`);
   };
 
   // Header'lar değiştiğinde localStorage'a kaydet
