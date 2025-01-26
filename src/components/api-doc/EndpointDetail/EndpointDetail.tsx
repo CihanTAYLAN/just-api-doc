@@ -641,7 +641,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   }, [endpoint.security]);
 
 
-
   // Memoize tab contents
   const playgroundContent = useMemo(
     () => (
@@ -653,8 +652,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             servers={spec.servers || []}
             selectedServer={selectedServer}
             onServerChange={setSelectedServer}
-            pathParams={pathParams}
-            onPathParamsChange={setPathParams}
           />
 
           <div className="space-y-4 flex flex-row">
@@ -817,7 +814,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   }, [path]);
 
-  // Save path parameters to localStorage when they change
   useEffect(() => {
     if (Object.keys(pathParams).length > 0) {
       localStorage.setItem(
@@ -827,15 +823,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     }
   }, [pathParams, path]);
 
-  // Handle path parameter changes
-  const handlePathParamChange = (paramName: string, value: string) => {
-    const newParams = {
-      ...pathParams,
-      [paramName]: value,
-    };
-    setPathParams(newParams);
-    localStorage.setItem(`pathParams-${apiDoc.id}`, JSON.stringify(newParams));
-  };
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-900">
@@ -856,7 +843,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             {endpoint?.deprecated && (
               <div
                 className={classNames(
-                  "flex items-center gap-1 px-2 py-1 rounded-full border",
+                  "flex items-center gap-1 px-1 py-0.5 rounded-full border text-xs",
                   BADGE_STYLES.error
                 )}
               >
@@ -867,7 +854,7 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
             {requiresAuth.length > 0 && (
               <div
                 className={classNames(
-                  "flex items-center gap-1 px-2 py-1 rounded-full border",
+                  "flex items-center gap-1 px-1 py-0.5 rounded-full border text-xs",
                   BADGE_STYLES.warning
                 )}
               >
