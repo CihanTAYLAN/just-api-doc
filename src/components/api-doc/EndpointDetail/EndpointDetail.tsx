@@ -12,7 +12,7 @@ import { ResponseSection } from "./ResponseSection";
 import { RequestBodySection } from "./RequestBodySection";
 import { EndpointUrlBar } from "./EndpointUrlBar";
 import { Headers } from "./Headers";
-import { DocumentationSection } from "./DocumentationSection";
+import { DocumentationSection } from "./Documentation/DocumentationSection";
 import { useSearchParams } from "next/navigation";
 import classNames from "classnames";
 import { TEXT_STYLES, BADGE_STYLES, BUTTON_STYLES } from "./styles";
@@ -644,112 +644,119 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
   const playgroundContent = useMemo(
     () => (
       <div className="p-4">
-        <div className="space-y-4">
-          <EndpointUrlBar
-            method={method}
-            path={path}
-            servers={spec.servers || []}
-            selectedServer={selectedServer}
-            onServerChange={setSelectedServer}
-          />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="relative"
+        >
+          <div className="space-y-4">
+            <EndpointUrlBar
+              method={method}
+              path={path}
+              servers={spec.servers || []}
+              selectedServer={selectedServer}
+              onServerChange={setSelectedServer}
+            />
 
-          <div className="space-y-4 flex flex-row">
-            {/* Headers Section */}
-            <div className="flex-1">
-              <Headers
-                headers={localHeaders}
-                onHeadersChange={handleHeaderChange}
-              />
+            <div className="space-y-4 flex flex-row">
+              {/* Headers Section */}
+              <div className="flex-1">
+                <Headers
+                  headers={localHeaders}
+                  onHeadersChange={handleHeaderChange}
+                />
+              </div>
+
+              {/* Request Body Section */}
+              <div className="flex-1">
+                <RequestBodySection
+                  endpoint={endpoint}
+                  spec={spec}
+                  requestBody={requestBody}
+                  setRequestBody={setRequestBody}
+                  selectedContentType={selectedContentType}
+                  setSelectedContentType={setSelectedContentType}
+                  formData={formData}
+                  onFormDataChange={setFormData}
+                />
+              </div>
+
             </div>
-
-            {/* Request Body Section */}
-            <div className="flex-1">
-              <RequestBodySection
-                endpoint={endpoint}
-                spec={spec}
-                requestBody={requestBody}
-                setRequestBody={setRequestBody}
-                selectedContentType={selectedContentType}
-                setSelectedContentType={setSelectedContentType}
-                formData={formData}
-                onFormDataChange={setFormData}
-              />
-            </div>
-
-          </div>
-          {/* Send Request Button */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleSendRequest}
-              disabled={loading}
-              className={classNames(
-                "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm",
-                loading ? BUTTON_STYLES.disabled : BUTTON_STYLES.primary
-              )}
-            >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  <span>Sending Request...</span>
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    ></path>
-                  </svg>
-                  <span>Send Request</span>
-                </>
-              )}
-            </button>
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
+            {/* Send Request Button */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleSendRequest}
+                disabled={loading}
                 className={classNames(
-                  "px-4 py-2 rounded-lg",
-                  BADGE_STYLES.error
+                  "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm",
+                  loading ? BUTTON_STYLES.disabled : BUTTON_STYLES.primary
                 )}
               >
-                {error}
-              </motion.p>
-            )}
+                {loading ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>Sending Request...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      ></path>
+                    </svg>
+                    <span>Send Request</span>
+                  </>
+                )}
+              </button>
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={classNames(
+                    "px-4 py-2 rounded-lg",
+                    BADGE_STYLES.error
+                  )}
+                >
+                  {error}
+                </motion.p>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Response Section */}
-        <div className="mt-6">
-          <h3 className={TEXT_STYLES.subheading}>Response</h3>
-          <ResponseSection response={response} sending={loading} />
-        </div>
+          {/* Response Section */}
+          <div className="mt-6">
+            <ResponseSection response={response} sending={loading} />
+          </div>
+        </motion.div>
       </div>
     ),
     [

@@ -1,9 +1,9 @@
-"use client";
+"use client";;
 
 import { FC, useMemo } from "react";
-import { ApiEndpoint, ApiSpec } from "../types";
+import { ApiEndpoint, ApiSpec } from "../../types";
 
-interface DocumentSectionRequestProps {
+interface DocumentationSectionRequestProps {
   endpoint: ApiEndpoint;
   spec: ApiSpec;
 }
@@ -70,7 +70,7 @@ const formatSchemaType = (schema: any): string => {
   return type;
 };
 
-const DocumentSectionRequest: FC<DocumentSectionRequestProps> = ({
+const DocumentationSectionRequest: FC<DocumentationSectionRequestProps> = ({
   endpoint,
   spec,
 }) => {
@@ -133,31 +133,31 @@ const DocumentSectionRequest: FC<DocumentSectionRequestProps> = ({
                       </span>
                       {params.find((param) => param.name === paramName)
                         .required && (
-                        <span className="bg-red-100 text-red-800 text-xs font-medium px-1.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300">
-                          Required
-                        </span>
-                      )}
+                          <span className="bg-red-100 text-red-800 text-xs font-medium px-1.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300">
+                            Required
+                          </span>
+                        )}
                     </div>
                     {params.find((param) => param.name === paramName)
                       .description && (
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {
-                          params.find((param) => param.name === paramName)
-                            .description
-                        }
-                      </p>
-                    )}
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {
+                            params.find((param) => param.name === paramName)
+                              .description
+                          }
+                        </p>
+                      )}
                     {params.find((param) => param.name === paramName).schema
                       ?.enum && (
-                      <div className="mt-1">
-                        <span className="text-xs text-gray-500">
-                          Allowed values:{" "}
-                          {params
-                            .find((param) => param.name === paramName)
-                            .schema.enum.join(", ")}
-                        </span>
-                      </div>
-                    )}
+                        <div className="mt-1">
+                          <span className="text-xs text-gray-500">
+                            Allowed values:{" "}
+                            {params
+                              .find((param) => param.name === paramName)
+                              .schema.enum.join(", ")}
+                          </span>
+                        </div>
+                      )}
                   </div>
                 )
               )}
@@ -201,4 +201,4 @@ const DocumentSectionRequest: FC<DocumentSectionRequestProps> = ({
   );
 };
 
-export default DocumentSectionRequest;
+export default DocumentationSectionRequest;

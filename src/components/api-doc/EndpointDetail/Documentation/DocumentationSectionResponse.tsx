@@ -1,5 +1,5 @@
 import { FC, useMemo, useState } from "react";
-import { ApiEndpoint, ApiSpec } from "../types";
+import { ApiEndpoint, ApiSpec } from "../../types";
 import classNames from "classnames";
 
 interface DocumentationSectionResponseProps {
@@ -98,7 +98,7 @@ const SchemaProperties = ({ schema, level = 0 }: SchemaPropertiesProps) => {
 
           return (
             <div key={propName} className="flex flex-col space-y-1">
-              <div 
+              <div
                 className={classNames(
                   "flex items-center gap-1.5",
                   hasNestedProperties && "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded px-1"

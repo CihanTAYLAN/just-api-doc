@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import React, { useCallback, useMemo } from 'react';
 import { ApiEndpoint, ApiSpec } from '../types';
 import { TEXT_STYLES } from './styles';
@@ -32,7 +31,7 @@ export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
 }) => {
   // Handle form data changes
   const handleFormDataChange = useCallback((key: string, value: string) => {
-    onFormDataChange((prev) => ({
+    onFormDataChange((prev: any) => ({
       ...prev,
       [key]: value,
     }));
@@ -73,21 +72,20 @@ export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
               setRequestBody(JSON.stringify(example, null, 2));
             }
             return JSON.stringify(example, null, 2);
-          } catch (error) {
-            console.error('Error preparing JSON:', error);
-            return '{}';
+          } catch {
+            // console.error('Error preparing JSON:', error);
           }
         })();
 
         return (
           <JsonEditor
-            value={jsonValue}
+            value={jsonValue ?? ''}
             onChange={(value) => {
               try {
                 const parsedJson = JSON.parse(value);
                 setRequestBody(parsedJson);
               } catch {
-                setRequestBody({});
+                // setRequestBody({});
               }
             }}
             height="200px"
@@ -175,7 +173,14 @@ export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
           </div>
         );
     }
-  }, [endpoint.requestBody, selectedContentType, requestBody, spec, setRequestBody]);
+  }, [endpoint.requestBody,
+    selectedContentType,
+    requestBody,
+    spec,
+    formData,
+    handleFormDataChange,
+    setRequestBody,
+  ]);
 
   return (
     <div>
