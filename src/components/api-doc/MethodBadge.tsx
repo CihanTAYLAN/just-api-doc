@@ -18,7 +18,7 @@ export const MethodBadge: React.FC<MethodBadgeProps> = ({ method }) => {
   const colorClass = methodColors[method.toLowerCase() as keyof typeof methodColors] || methodColors.default;
 
   return (
-    <span className={`inline-flex justify-center items-center w-14 px-2 py-1 rounded text-xs font-medium uppercase ${colorClass}`}>
+    <span className={`inline-flex justify-center items-center min-w-14 px-2 py-1 rounded text-xs font-medium uppercase ${colorClass}`}>
       {method}
     </span>
   );
