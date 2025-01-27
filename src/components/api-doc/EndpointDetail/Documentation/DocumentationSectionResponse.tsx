@@ -1,6 +1,7 @@
 import { FC, useMemo, useState } from "react";
 import { ApiEndpoint, ApiSpec } from "../../types";
 import classNames from "classnames";
+import { formatSchemaType } from "../../utils/resolveSchema";
 
 interface DocumentationSectionResponseProps {
   endpoint: ApiEndpoint;
@@ -41,33 +42,6 @@ const resolveSchemaRef = (schema: any, spec: ApiSpec): any => {
   return schema;
 };
 
-// Şema tipini formatlı gösterir
-const formatSchemaType = (schema: any): string => {
-  if (!schema) return "unknown";
-
-  if (schema.type === "array") {
-    const itemType = formatSchemaType(schema.items);
-    return `array<${itemType}>`;
-  }
-
-  if (schema.type === "object" && schema.additionalProperties) {
-    const valueType = formatSchemaType(schema.additionalProperties);
-    return `Record<string, ${valueType}>`;
-  }
-
-  let type = schema.type || "any";
-  if (schema.enum) {
-    type = `enum(${schema.enum.join(" | ")})`;
-  }
-  if (schema.format) {
-    type += ` (${schema.format})`;
-  }
-  if (schema.nullable) {
-    type += " | null";
-  }
-
-  return type;
-};
 
 // Şema özelliklerini recursive olarak render eder
 interface SchemaPropertiesProps {
@@ -101,7 +75,7 @@ const SchemaProperties = ({ schema, level = 0 }: SchemaPropertiesProps) => {
               <div
                 className={classNames(
                   "flex items-center gap-1.5",
-                  hasNestedProperties && "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded px-1"
+                  hasNestedProperties && "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
                 )}
                 onClick={() => hasNestedProperties && toggleProp(propName)}
               >
@@ -123,26 +97,27 @@ const SchemaProperties = ({ schema, level = 0 }: SchemaPropertiesProps) => {
                     />
                   </svg>
                 )}
-                <span className="font-medium text-xs">{propName}</span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                  {formatSchemaType(propSchema)}
-                </span>
-                {schema.required?.includes(propName) && (
-                  <span className="bg-red-100 text-red-800 text-[10px] font-medium px-1.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300">
-                    Required
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 w-full">
+                  <div className="font-medium text-xs min-w-30">{propName}</div>
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                    {formatSchemaType(propSchema)}
+                  </div>
+                  {schema.required?.includes(propName) && (
+                    <div className="bg-red-100 text-red-800 text-[10px] font-medium px-1.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300 ml-auto">
+                      Required
+                    </div>
+                  )}
+                </div>
               </div>
 
               {propSchema.description && (
-                <p className="text-xs text-gray-600 dark:text-gray-400 ml-4">
+                <div className="text-xs text-gray-600 dark:text-gray-400 ml-4">
                   {propSchema.description}
-                </p>
-              )}
-
-              {propSchema.enum && (
-                <div className="ml-4 text-[10px] text-gray-500 dark:text-gray-400">
-                  Allowed values: {propSchema.enum.join(", ")}
+                  {hasNestedProperties && isExpanded && (
+                    <p className="mt-1 border-l-2 border-gray-200 dark:border-gray-700">
+                      <SchemaProperties schema={propSchema} level={level + 1} />
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -208,107 +183,112 @@ const DocumentationSectionResponse: FC<DocumentationSectionResponseProps> = ({
   };
 
   return (
-    <div className="p-2 space-y-2">
-      <h3 className="text-lg font-medium">Responses</h3>
+    <div className="space-y-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Responses</h3>
 
-      {/* Status Code Selector */}
-      <div className="flex flex-wrap gap-1.5">
-        {Object.entries(resolvedResponses).map(([code, response]) => (
-          <button
-            key={code}
-            onClick={() => setSelectedCode(code)}
-            className={classNames(
-              "px-2 py-0.5 rounded-lg text-xs font-medium transition-all duration-200",
-              {
-                "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300":
-                  getStatusColor(code) === "success" && selectedCode !== code,
-                "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300":
-                  getStatusColor(code) === "warning" && selectedCode !== code,
-                "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300":
-                  getStatusColor(code) === "error" && selectedCode !== code,
-                "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300":
-                  getStatusColor(code) === "default" && selectedCode !== code,
-                "ring-2 ring-offset-1 dark:ring-offset-gray-900":
-                  selectedCode === code,
-                "ring-green-500":
-                  selectedCode === code && getStatusColor(code) === "success",
-                "ring-yellow-500":
-                  selectedCode === code && getStatusColor(code) === "warning",
-                "ring-red-500":
-                  selectedCode === code && getStatusColor(code) === "error",
-                "ring-gray-500":
-                  selectedCode === code && getStatusColor(code) === "default",
-              }
-            )}
-          >
-            {code}
-          </button>
-        ))}
+        {/* Status Code Selector */}
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(resolvedResponses).map(([code, response]) => (
+            <button
+              key={code}
+              onClick={() => setSelectedCode(code)}
+              className={classNames(
+                "px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
+                {
+                  "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30":
+                    getStatusColor(code) === "success" && selectedCode !== code,
+                  "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/30":
+                    getStatusColor(code) === "warning" && selectedCode !== code,
+                  "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30":
+                    getStatusColor(code) === "error" && selectedCode !== code,
+                  "bg-gray-50 text-gray-700 dark:bg-gray-900/20 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/30":
+                    getStatusColor(code) === "default" && selectedCode !== code,
+                  "ring-2 ring-offset-2 dark:ring-offset-gray-900":
+                    selectedCode === code,
+                  "ring-green-500/70 bg-green-100 text-green-800":
+                    selectedCode === code && getStatusColor(code) === "success",
+                  "ring-yellow-500/70 bg-yellow-100 text-yellow-800":
+                    selectedCode === code && getStatusColor(code) === "warning",
+                  "ring-red-500/70 bg-red-100 text-red-800":
+                    selectedCode === code && getStatusColor(code) === "error",
+                  "ring-gray-500/70 bg-gray-100 text-gray-800":
+                    selectedCode === code && getStatusColor(code) === "default",
+                }
+              )}
+            >
+              {code}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Selected Response Details */}
       {selectedCode && resolvedResponses[selectedCode] && (
-        <div className="space-y-2">
+        <div className="space-y-4">
           {/* Description */}
           {resolvedResponses[selectedCode].description && (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              {resolvedResponses[selectedCode].description}
-            </p>
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                {resolvedResponses[selectedCode].description}
+              </p>
+            </div>
           )}
 
           {/* Content */}
           {resolvedResponses[selectedCode].content && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {Object.entries(resolvedResponses[selectedCode].content).map(
                 ([contentType, content]: [string, any]) => (
-                  <div key={contentType} className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="bg-gray-100 text-gray-800 text-xs font-medium px-1.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-gray-300">
-                        {contentType}
+                  <div key={contentType} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Content-Type: {contentType}
                       </span>
                     </div>
-
                     {content.schema && (
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                      <div className="p-4">
                         {content.schema.type === "object" &&
                           content.schema.properties && (
                             <SchemaProperties schema={content.schema} />
                           )}
                         {content.schema.type === "array" &&
                           content.schema.items && (
-                            <div className="space-y-1.5">
-                              <div className="text-xs font-medium">
-                                Array of{" "}
-                                {formatSchemaType(content.schema.items)}
+                            <div className="space-y-3">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                  Array of {formatSchemaType(content.schema.items)}
+                                </span>
+                                <div className="flex gap-2">
+                                  {content.schema.minItems !== undefined && (
+                                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400">
+                                      Min: {content.schema.minItems}
+                                    </span>
+                                  )}
+                                  {content.schema.maxItems !== undefined && (
+                                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400">
+                                      Max: {content.schema.maxItems}
+                                    </span>
+                                  )}
+                                  {content.schema.uniqueItems && (
+                                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400">
+                                      Unique items
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                               {content.schema.items.description && (
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                   {content.schema.items.description}
                                 </p>
                               )}
-                              <div className="flex flex-wrap gap-2">
-                                {content.schema.minItems !== undefined && (
-                                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                    Min items: {content.schema.minItems}
-                                  </span>
-                                )}
-                                {content.schema.maxItems !== undefined && (
-                                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                    Max items: {content.schema.maxItems}
-                                  </span>
-                                )}
-                                {content.schema.uniqueItems && (
-                                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                    Unique items
-                                  </span>
-                                )}
-                              </div>
-                              {/* Array içindeki tipleri göster */}
                               {content.schema.items.type === "object" &&
                                 content.schema.items.properties && (
-                                  <SchemaProperties
-                                    schema={content.schema.items}
-                                  />
+                                  <div className="mt-2">
+                                    <SchemaProperties
+                                      schema={content.schema.items}
+                                    />
+                                  </div>
                                 )}
                             </div>
                           )}

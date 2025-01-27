@@ -55,7 +55,6 @@ export const DocumentationSection: React.FC<DocumentationSectionProps> = ({
   >(null);
 
   useEffect(() => {
-    console.log(endpoint, spec);
     setResolvedSchemaObject(resolveSchemaFromSpec(endpoint, spec));
   }, []);
 
