@@ -623,7 +623,6 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
     endpoint.security.forEach((authType) => {
       const authKey = Object.keys(authType)[0];
       const securityScheme = spec.components?.securitySchemes?.[authKey];
-      console.log(securityScheme);
 
       // Check if it's not a Reference by looking for the 'in' property
       if (
@@ -671,16 +670,18 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
 
               {/* Request Body Section */}
               <div className="flex-1">
-                <RequestBodySection
-                  endpoint={endpoint}
-                  spec={spec}
-                  requestBody={requestBody}
-                  setRequestBody={setRequestBody}
-                  selectedContentType={selectedContentType}
-                  setSelectedContentType={setSelectedContentType}
-                  formData={formData}
-                  onFormDataChange={setFormData}
-                />
+                {requestBody &&
+                  <RequestBodySection
+                    endpoint={endpoint}
+                    spec={spec}
+                    requestBody={requestBody}
+                    setRequestBody={setRequestBody}
+                    selectedContentType={selectedContentType}
+                    setSelectedContentType={setSelectedContentType}
+                    formData={formData}
+                    onFormDataChange={setFormData}
+                  />
+                }
               </div>
 
             </div>

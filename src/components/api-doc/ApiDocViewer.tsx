@@ -106,25 +106,30 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     setIsInitialLoad(false);
   }, [spec, searchParams, isInitialLoad]);
 
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+
+  // Handle URL updates after render
+  useEffect(() => {
+    if (pendingUrl !== null) {
+      window.history.replaceState(null, '', pendingUrl);
+      setPendingUrl(null);
+    }
+  }, [pendingUrl]);
+
   // Silently update URL
   const updateUrlSilently = useCallback((params: { path?: string; method?: string; group?: string }) => {
     const urlParams = new URLSearchParams(searchParams.toString());
     Object.entries(params).forEach(([key, value]) => {
-      if (value) {
-        urlParams.set(key, value);
-      } else {
+      if (value === undefined) {
         urlParams.delete(key);
+      } else {
+        urlParams.set(key, value);
       }
     });
 
     const newUrl = `${pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
-    if (window.location.search !== `?${urlParams.toString()}`) {
-      try {
-        window.history.replaceState(null, '', newUrl);
-      } catch (error) {
-        console.log(error);
-
-      }
+    if (newUrl !== window.location.pathname + window.location.search) {
+      setPendingUrl(newUrl);
     }
   }, [pathname, searchParams]);
 
