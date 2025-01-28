@@ -1,8 +1,7 @@
-"use client";
-
+"use client";;
 import React from 'react';
-import { motion } from 'framer-motion';
 import { JsonEditor } from './JsonEditor';
+import { TEXT_STYLES } from './styles';
 
 interface ResponseSectionProps {
   response: {
@@ -16,13 +15,9 @@ interface ResponseSectionProps {
 
 export const ResponseSection: React.FC<ResponseSectionProps> = ({ response, sending }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 space-y-4"
-    >
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Response</h3>
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className={TEXT_STYLES.subheading}>Response</h3>
         <div className="flex items-center gap-2">
           {sending ? (
             <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-800/20 dark:text-blue-400">
@@ -50,6 +45,6 @@ export const ResponseSection: React.FC<ResponseSectionProps> = ({ response, send
           is_editable={false}
         />
       </div>
-    </motion.div>
+    </div>
   );
 };

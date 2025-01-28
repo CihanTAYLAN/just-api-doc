@@ -28,7 +28,7 @@ export const TagGroup: React.FC<TagGroupProps> = ({
   selectedEndpoint
 }) => {
   return (
-    <div>
+    <div className=''>
       <button
         onClick={onToggle}
         className="
@@ -39,11 +39,11 @@ export const TagGroup: React.FC<TagGroupProps> = ({
           focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
         "
       >
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 truncate">
           <span className={`transform transition-transform ${isOpen ? 'rotate-90' : ''}`}>
             ▶
           </span>
-          <span>{name}</span>
+          <div className='truncate'>{name}</div>
           <span className="text-gray-500">({endpoints.length})</span>
         </div>
       </button>
@@ -72,7 +72,7 @@ export const TagGroup: React.FC<TagGroupProps> = ({
               `}
             >
               <MethodBadge method={endpoint.method} />
-              <span className="font-mono truncate">{endpoint.path}</span>
+              <div className="font-mono truncate">{endpoint.path}</div>
             </button>
           ))}
         </div>

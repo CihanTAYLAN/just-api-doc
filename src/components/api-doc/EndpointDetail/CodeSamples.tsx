@@ -273,86 +273,94 @@ export const CodeSamples: React.FC<CodeSamplesProps> = ({
 
   return (
     <div className="rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg">
-      {/* Language Tabs */}
-      <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-        {tabs.map(({ id, label, icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveLangTab(id)}
-            className={`relative px-4 py-3 text-sm font-medium transition-all duration-200 ${activeLangTab === id
-              ? 'text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-900'
-              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50'
-              }`}
-          >
-            <span className="flex items-center space-x-2">
-              <span>{icon}</span>
-              <span>{label}</span>
-            </span>
-            {activeLangTab === id && (
-              <motion.div
-                key={id}
-                layoutId="activeTab"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"
-                initial={false}
-              />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Code Display */}
-      <div className="relative">
-        <motion.div
-          key={activeLangTab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="relative"
-        >
-          <div className="dark:bg-gray-900">
-            <SyntaxHighlighter
-              language={getLanguage(activeLangTab)}
-              style={theme === 'dark' ? oneDark : oneLight}
-              customStyle={{
-                margin: 0,
-                padding: '1rem',
-                fontSize: '0.875rem',
-              }}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+        className="relative"
+      >
+        {/* Language Tabs */}
+        <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+          {tabs.map(({ id, label, icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveLangTab(id)}
+              className={`relative px-4 py-3 text-sm font-medium transition-all duration-200 ${activeLangTab === id
+                ? 'text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-900'
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50'
+                }`}
             >
-              {getCodeForLanguage()}
-            </SyntaxHighlighter>
-          </div>
-        </motion.div>
-
-        <div className="absolute top-3 right-3 flex space-x-2">
-          <button
-            onClick={handleCopy}
-            className="p-2 rounded-lg transition-all duration-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 group hover:scale-105 active:scale-95"
-            title="Copy to clipboard"
-          >
-            {copied ? (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="text-green-600 dark:text-green-400"
-              >
-                <CheckIcon className="h-5 w-5" />
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"
-              >
-                <ClipboardIcon className="h-5 w-5" />
-              </motion.div>
-            )}
-          </button>
+              <span className="flex items-center space-x-2">
+                <span>{icon}</span>
+                <span>{label}</span>
+              </span>
+              {activeLangTab === id && (
+                <motion.div
+                  key={id}
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"
+                  initial={false}
+                />
+              )}
+            </button>
+          ))}
         </div>
-      </div>
+
+        {/* Code Display */}
+        <div className="relative">
+          <motion.div
+            key={activeLangTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="relative"
+          >
+            <div className="dark:bg-gray-900">
+              <SyntaxHighlighter
+                language={getLanguage(activeLangTab)}
+                style={theme === 'dark' ? oneDark : oneLight}
+                customStyle={{
+                  margin: 0,
+                  padding: '1rem',
+                  fontSize: '0.875rem',
+                }}
+              >
+                {getCodeForLanguage()}
+              </SyntaxHighlighter>
+            </div>
+          </motion.div>
+
+          <div className="absolute top-3 right-3 flex space-x-2">
+            <button
+              onClick={handleCopy}
+              className="p-2 rounded-lg transition-all duration-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 group hover:scale-105 active:scale-95"
+              title="Copy to clipboard"
+            >
+              {copied ? (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="text-green-600 dark:text-green-400"
+                >
+                  <CheckIcon className="h-5 w-5" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"
+                >
+                  <ClipboardIcon className="h-5 w-5" />
+                </motion.div>
+              )}
+            </button>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };

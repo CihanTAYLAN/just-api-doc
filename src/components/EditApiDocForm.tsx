@@ -60,12 +60,12 @@ export default function EditApiDocForm({ apiDoc, isOpen, onClose }: EditApiDocFo
     setError("")
 
     try {
-      // API URL validasyonu
+      // API URL validation
       if (formData.jsonUrl && !isValidUrl(formData.jsonUrl)) {
         throw new Error("Invalid API URL format")
       }
 
-      // Logo alanını boş string ise undefined olarak ayarla
+      // Set logo field to undefined if empty string
       const payload = {
         ...formData,
         logo: formData.logo || undefined
