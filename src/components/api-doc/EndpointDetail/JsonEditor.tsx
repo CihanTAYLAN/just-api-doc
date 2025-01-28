@@ -1,31 +1,33 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import Editor, { loader } from '@monaco-editor/react';
+import Editor from '@monaco-editor/react';
 import { useTheme } from 'next-themes';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 
-loader.config({ monaco: undefined });
+import * as Monaco from 'monaco-editor';
 
 interface JsonEditorProps {
   value: string;
   onChange: (value: string) => void;
   height?: string;
+  is_editable?: boolean;
 }
 
 export const JsonEditor: React.FC<JsonEditorProps> = ({
   value,
   onChange,
-  height = "200px"
+  height = "100px",
+  is_editable = true
 }) => {
   const { theme, systemTheme } = useTheme();
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
   // Determine the actual theme based on system preference and user preference
   const currentTheme = theme === 'system' ? systemTheme : theme;
 
-  const handleEditorDidMount = (editor: any, monaco: any) => {
+  const handleEditorDidMount = (editor: Monaco.editor.IStandaloneCodeEditor, monaco: typeof Monaco) => {
     editorRef.current = editor;
 
     // Define themes when editor is mounted
@@ -97,8 +99,10 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
   };
 
   const handleFormat = () => {
-    if (editorRef.current) {
-      editorRef.current.getAction('editor.action.formatDocument').run();
+    if (editorRef?.current) {
+      editorRef?.current?.getAction('editor.action.formatDocument')?.run();
+    } else {
+      console.warn('Editor reference is not set.');
     }
   };
 
@@ -131,12 +135,14 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
         </button>
       </div>
       <Editor
+
         height={height}
         defaultLanguage="json"
         value={value}
         onChange={handleEditorChange}
         onMount={handleEditorDidMount}
         options={{
+          readOnly: !is_editable,
           minimap: { enabled: false },
           fontSize: 13,
           lineNumbers: 'on',
@@ -146,7 +152,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
           automaticLayout: true,
           formatOnPaste: true,
           formatOnType: true,
-          tabSize: 2,
+          tabSize: 4,
           wordWrap: 'on',
           renderWhitespace: 'selection',
           bracketPairColorization: { enabled: true },
@@ -160,10 +166,10 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
           showFoldingControls: 'always',
           smoothScrolling: true,
           cursorBlinking: 'smooth',
-          cursorSmoothCaretAnimation: true,
+          cursorSmoothCaretAnimation: 'on',
           roundedSelection: true,
           renderLineHighlight: 'all',
-          occurrencesHighlight: true,
+          occurrencesHighlight: 'singleFile',
           colorDecorators: true,
         }}
       />

@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json(response.data);
 	} catch (error) {
-		console.error("Proxy error:", error);
 		if (axios.isAxiosError(error)) {
 			return NextResponse.json({ error: error.message, details: error.response?.data }, { status: error.response?.status ?? 500 });
 		}

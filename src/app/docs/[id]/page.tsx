@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { ApiDocViewer } from "@/components/api-doc/ApiDocViewer"
-
+import Metadata from "@/components/MetaData"
 
 interface ViewApiDocPageProps {
   params: {
@@ -52,6 +52,7 @@ export default async function ViewApiDocPage({ params, searchParams }: ViewApiDo
 
   return (
     <div className="min-h-screen-custom">
+      <Metadata seoTitle={apiDoc?.name + " - Just API Doc"} />
       <ApiDocViewer apiDoc={apiDoc} />
     </div>
   )
