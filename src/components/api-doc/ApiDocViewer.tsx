@@ -51,9 +51,9 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     }];
   });
 
-  // Header değişikliklerini yönet
+  // Handle header changes
   const handleHeadersChange = useCallback((newHeaders: { key: string; value: string; required?: boolean }[]) => {
-    // Gelen header'ları doğrula
+    // Validate incoming headers
     const validHeaders = newHeaders.filter(h => h.key && typeof h.key === 'string');
 
     setHeaders(validHeaders);
@@ -65,7 +65,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     }
   }, [apiDoc]);
 
-  // URL'den endpoint ve grup bilgisini yükle
+  // Load endpoint and group information from URL
   useEffect(() => {
     if (!spec?.paths || !isInitialLoad) return;
 
@@ -73,7 +73,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     const method = searchParams.get('method')?.toLowerCase();
     const group = searchParams.get('group');
 
-    // Endpoint varsa yükle
+    // Load endpoint if exists
     if (path && method && spec.paths[path]) {
       type BasePathItem = {
         summary?: string;
@@ -98,7 +98,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
       }
     }
 
-    // Grup varsa aç
+    // Open group if exists
     if (group) {
       setOpenGroups(prev => ({ ...prev, [group]: true }));
     }
@@ -106,7 +106,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     setIsInitialLoad(false);
   }, [spec, searchParams, isInitialLoad]);
 
-  // URL'i sessizce güncelle
+  // Silently update URL
   const updateUrlSilently = useCallback((params: { path?: string; method?: string; group?: string }) => {
     const urlParams = new URLSearchParams(searchParams.toString());
     Object.entries(params).forEach(([key, value]) => {
@@ -119,11 +119,16 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
 
     const newUrl = `${pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
     if (window.location.search !== `?${urlParams.toString()}`) {
-      window.history.replaceState(null, '', newUrl);
+      try {
+        window.history.replaceState(null, '', newUrl);
+      } catch (error) {
+        console.log(error);
+
+      }
     }
   }, [pathname, searchParams]);
 
-  // API spec'i yükle
+  // Load API spec
   useEffect(() => {
     const loadSpec = async () => {
       try {
@@ -141,7 +146,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     loadSpec();
   }, [apiDoc]);
 
-  // Mouse hareketlerini izle
+  // Track mouse movements
   useEffect(() => {
     if (!isResizing) return;
 
@@ -173,7 +178,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
     setOpenGroups(prev => {
       const newState = { ...prev, [name]: !prev[name] };
 
-      // Grup durumu değiştiğinde URL'i sessizce güncelle
+      // Silently update URL when group state changes
       if (newState[name]) {
         updateUrlSilently({ group: name });
       } else {
@@ -191,7 +196,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
   }) => {
     setSelectedEndpoint(endpoint);
 
-    // Endpoint seçildiğinde URL'i sessizce güncelle
+    // Silently update URL when endpoint is selected
     const currentGroup = searchParams.get('group');
     updateUrlSilently({
       path: endpoint.path,
@@ -199,7 +204,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
       group: currentGroup || (endpoint.endpoint.tags && endpoint.endpoint.tags.length > 0 ? endpoint.endpoint.tags[0] : 'Other')
     });
 
-    // Endpoint'in tag'ini otomatik olarak aç
+    // Automatically open the endpoint's tag
     if (endpoint.endpoint.tags && endpoint.endpoint.tags.length > 0) {
       setOpenGroups(prev => ({ ...prev, [endpoint.endpoint.tags![0]]: true }));
     }
@@ -207,7 +212,7 @@ export const ApiDocViewer: React.FC<ApiDocViewerProps> = ({ apiDoc }) => {
 
   const handleOverviewSelect = useCallback(() => {
     setSelectedEndpoint(null);
-    // Overview seçildiğinde URL'i sessizce güncelle
+    // Silently update URL when overview is selected
     const currentGroup = searchParams.get('group');
     updateUrlSilently({
       path: undefined,

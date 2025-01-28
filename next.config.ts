@@ -2,11 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 	typescript: {
-		// Build sırasında type hatalarını görmezden gel
+		// Ignore type errors during build
 		ignoreBuildErrors: true,
 	},
 	eslint: {
-		// Build sırasında eslint hatalarını görmezden gel
+		// Ignore eslint errors during build
 		ignoreDuringBuilds: true,
 	},
 	images: {
