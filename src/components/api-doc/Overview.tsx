@@ -3,6 +3,7 @@ import { ApiSpec } from "./types";
 import ReactMarkdown from 'react-markdown';
 import { useEffect, useRef, useState } from 'react';
 import Image from "next/image";
+import style from './markdown-styles.module.css';
 
 interface ApiDocViewerProps {
     apiDoc: ApiDoc;
@@ -106,9 +107,9 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
             </div>
 
             {/* Content */}
-            <div ref={containerRef} className="relative w-full max-w-[95%] xs:max-w-[90%] sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto text-center space-y-4 sm:space-y-6 lg:space-y-8 p-8">
+            <div ref={containerRef} className="relative w-full max-w-[95%] xs:max-w-[90%] p-3">
                 {/* Content with glass effect */}
-                <div className="relative space-y-2 xs:space-y-3 sm:space-y-4 backdrop-blur-sm">
+                <div className="relative space-y-2 xs:space-y-3 sm:space-y-4 mb-8">
                     <div className="flex items-center justify-center transform transition-transform duration-300 hover:scale-105 fade-in">
                         {apiDoc?.logo ? (
                             <Image width={60} height={60} src={apiDoc.logo} alt="API Logo" className="h-10 xs:h-12 sm:h-14 lg:h-16 w-auto filter hover:brightness-110 transition-all duration-300" />
@@ -121,20 +122,20 @@ const Overview: React.FC<ApiDocViewerProps> = ({ apiDoc, spec }: { apiDoc: ApiDo
                             </div>
                         )}
                     </div>
-                    <h1 className="relative text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold fade-in">
-                        <span className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 dark:from-indigo-400/20 dark:to-purple-400/20 blur-xl" />
-                        <span className="relative bg-gradient-to-r from-gray-900 via-indigo-900 to-gray-900 dark:from-white dark:via-indigo-100 dark:to-white bg-clip-text text-transparent">
+                    <h1 className="relative text-lg xs:text-2xl sm:text-3xl lg:text-4xl font-bold fade-in">
+                        <span className="absolute inset-0" />
+                        <span className="relative">
                             {spec?.info?.title || 'API Documentation'}
                         </span>
                     </h1>
-                    <div className="relative text-sm xs:text-base sm:text-lg text-gray-700 dark:text-gray-300/90 max-w-xs xs:max-w-sm sm:max-w-xl lg:max-w-2xl mx-auto px-2 prose dark:prose-invert fade-in">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 dark:from-indigo-400/10 dark:to-purple-400/10 blur-lg" />
-                            <div className="relative">
-                                <ReactMarkdown>
-                                    {spec?.info?.description ?? 'Welcome to our API documentation. Select an endpoint from the sidebar to get started.'}
-                                </ReactMarkdown>
-                            </div>
+                    <div className="relative text-sm xs:text-base sm:text-lg text-gray-700 dark:text-gray-300/90 px-2 prose dark:prose-invert fade-in">
+                        <div className="prose-sm xs:prose-base sm:prose-lg prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-a:text-indigo-600 dark:prose-a:text-indigo-400 hover:prose-a:text-indigo-500 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-gray-800 dark:prose-code:text-gray-200 prose-code:bg-gray-100 dark:prose-code:bg-gray-800/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800/50 prose-pre:p-4 prose-pre:rounded-lg prose-ul:list-disc prose-ol:list-decimal prose-li:text-gray-700 dark:prose-li:text-gray-300">
+                            <ReactMarkdown
+
+                                className={style.reactMarkDown}
+                            >
+                                {spec?.info?.description ?? 'Welcome to our API documentation. Select an endpoint from the sidebar to get started.'}
+                            </ReactMarkdown>
                         </div>
                     </div>
                 </div>

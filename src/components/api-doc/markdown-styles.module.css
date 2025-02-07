@@ -1,0 +1,43 @@
+.reactMarkDown {
+	line-height: 1.6;
+	font-size: 16px;
+}
+
+.reactMarkDown h1,
+.reactMarkDown h2,
+.reactMarkDown h3,
+.reactMarkDown h4,
+.reactMarkDown h5,
+.reactMarkDown h6 {
+	font-size: 1em;
+	padding-bottom: 0.3em;
+	color: var(--text-color);
+}
+
+.reactMarkDown code {
+	padding: 0.2em 0.4em;
+	background-color: #f8f8f8;
+	border-radius: 3px;
+	font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.reactMarkDown pre {
+	padding: 16px;
+	background-color: #f8f8f8;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+.reactMarkDown p {
+	margin-bottom: 16px;
+	color: var(--text-color);
+}
+
+@media (prefers-color-scheme: dark) {
+	.reactMarkDown code {
+		background-color: #333;
+	}
+	.reactMarkDown pre {
+		background-color: #333;
+	}
+}
