@@ -111,20 +111,33 @@ Here are some screenshots showcasing the platform's interface and features:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
+## 📝 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
+## 🤝 Contributing
 
-- Website: [cihantaylan.com](https://cihantaylan.com)
-- GitHub: [@cihantaylan](https://github.com/cihantaylan)
-- X: [@cihantaylan24](https://x.com/cihantaylan24)
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## I have a bug or feature request
+## 💬 Support & Community
 
-Please open an issue on [GitHub](https://github.com/cihanTAYLAN/just-api-doc/issues) or reach out to me on [X](https://x.com/cihantaylan24).
+- 📫 Author: Cihan TAYLAN
+  - Website: [cihantaylan.com](https://cihantaylan.com)
+  - GitHub: [@cihantaylan](https://github.com/cihantaylan)
+  - LinkedIn: [cihantaylan](https://www.linkedin.com/in/cihantaylan/)
+
+### Issue Reporting
+
+Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/cihanTAYLAN/grpc-boilerplate-realtime/issues) or reach out on [X](https://x.com/cihantaylan24).
 
 ---
 
-Don't forget to star this project if you found it helpful!
+<div align="center">
+  <sub>Built with ❤️ by Cihan TAYLAN</sub>
+  <br>
+  ⭐ Don't forget to star this project if you found it helpful!
+</div>
