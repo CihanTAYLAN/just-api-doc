@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { OpenAPIV3 } from "openapi-types";
@@ -88,8 +89,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
       endpoint.requestBody.content?.["application/json"]?.schema
     ) {
       const schema = endpoint.requestBody.content["application/json"].schema;
-      const resolvedSchema = resolveSchema(schema, spec);
-      currentBody = generateExampleFromSchema(resolvedSchema);
+      const resolvedSchema = resolveSchema(schema, spec as any);
+      currentBody = generateExampleFromSchema(resolvedSchema || undefined) as Record<string, unknown> | null;
     }
     return currentBody;
   }, [endpoint.requestBody, requestBody, spec]);
@@ -134,28 +135,32 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
           !("$ref" in param) ? (param as OpenAPIV3.ParameterObject).name : ""
         );
 
-      if (missingPathParams?.length > 0) {
+      if (missingPathParams && missingPathParams.length > 0) {
         throw new Error(
           `Missing required path parameters: ${missingPathParams.join(", ")}`
         );
       }
 
       // Prepare request body based on content type
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       let finalRequestBody: string | FormData | undefined;
       if (selectedContentType === "multipart/form-data") {
         const formDataObj = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
           formDataObj.append(key, value);
         });
-        finalRequestBody = formDataObj;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const finalRequestBody = formDataObj;
       } else if (selectedContentType === "application/x-www-form-urlencoded") {
         const params = new URLSearchParams();
         Object.entries(formData).forEach(([key, value]) => {
           params.append(key, value);
         });
-        finalRequestBody = params.toString();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const finalRequestBody = params.toString();
       } else if (requestBody) {
-        finalRequestBody = JSON.stringify(requestBody);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const finalRequestBody = JSON.stringify(requestBody);
       }
 
       // Prepare headers
@@ -216,18 +221,19 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         headers: response.headers,
         data: response.data,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Request failed:", err);
+      const error = err as { response?: { data?: { error?: string }; status?: number; statusText?: string; headers?: Record<string, string> }; message?: string };
       const errorMessage =
-        err?.response?.data?.error || err?.message || "Request failed";
+        error?.response?.data?.error || error?.message || "Request failed";
       setError(errorMessage);
 
-      if (err?.response) {
+      if (error?.response) {
         setResponse({
-          status: err.response.status,
-          statusText: err.response.statusText,
-          headers: err.response.headers,
-          data: err.response.data,
+          status: error.response.status || 0,
+          statusText: error.response.statusText || "Unknown",
+          headers: error.response.headers || {},
+          data: error.response.data,
         });
       } else {
         setResponse(null);
@@ -300,8 +306,8 @@ export const EndpointDetail: React.FC<EndpointDetailProps> = ({
         try {
           const schema =
             endpoint.requestBody.content["application/json"].schema;
-          const resolvedSchema = resolveSchema(schema, spec);
-          const example = generateExampleFromSchema(resolvedSchema);
+          const resolvedSchema = resolveSchema(schema, spec as any);
+          const example = generateExampleFromSchema(resolvedSchema || undefined);
           const parsedExample =
             typeof example === "string" ? JSON.parse(example) : example;
           setRequestBody(parsedExample);

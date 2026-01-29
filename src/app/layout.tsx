@@ -1,7 +1,8 @@
 import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
+import { Session } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Navbar from "@/components/Navbar"
 import { ThemeProvider } from "@/providers/ThemeProvider"
@@ -14,24 +15,13 @@ export const metadata: Metadata = {
   description: "Modern API Documentation Management Platform",
   icons: {
     icon: [
-      {
-        url: "/favicon.ico",
-        sizes: "any",
-      },
-      {
-        url: "/favicon.svg",
-        type: "image/svg+xml",
-      },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' }
     ],
-    apple: [
-      {
-        url: "/apple-touch-icon.png",
-        sizes: "180x180",
-        type: "image/png",
-      },
-    ],
+    shortcut: ['/favicon.ico'],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }]
   },
-  manifest: "/site.webmanifest",
+  manifest: '/site.webmanifest',
 }
 
 export default async function RootLayout({
@@ -39,7 +29,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
+  const session: Session | null = await getServerSession(authOptions)
 
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>

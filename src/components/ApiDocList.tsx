@@ -1,7 +1,6 @@
 "use client";
 import { ApiDoc } from "@prisma/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CalendarIcon, LockClosedIcon, LockOpenIcon, PencilIcon, TrashIcon, EyeIcon, ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/24/outline";
 
@@ -11,7 +10,6 @@ interface ApiDocListProps {
 }
 
 export default function ApiDocList({ apiDocs, onEdit }: ApiDocListProps) {
-  const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 

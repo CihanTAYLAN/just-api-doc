@@ -8,7 +8,7 @@ interface AccessCodeFormProps {
   docName: string
 }
 
-export default function AccessCodeForm({ docId, docName }: AccessCodeFormProps) {
+export default function AccessCodeForm({ docId }: AccessCodeFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)

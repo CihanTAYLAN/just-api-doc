@@ -14,8 +14,8 @@ export default function Home() {
     offset: ["start end", "end start"]
   })
 
-  const y = useTransform(scrollYProgress, [0, 1], ["20%", "-20%"])
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0])
+  useTransform(scrollYProgress, [0, 1], ["20%", "-20%"])
+  useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0])
 
   const container = {
     hidden: { opacity: 0 },

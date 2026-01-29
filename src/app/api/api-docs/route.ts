@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+
+export const dynamic = 'force-dynamic';
 
 // API doc validation schema
 const apiDocSchema = z
@@ -24,7 +27,7 @@ const apiDocSchema = z
 
 export async function POST(req: Request) {
 	try {
-		const session = await getServerSession(authOptions);
+		const session: Session | null = await getServerSession(authOptions);
 		if (!session?.user?.id) {
 			return new NextResponse("Unauthorized", { status: 401 });
 		}
@@ -57,13 +60,9 @@ export async function POST(req: Request) {
 		});
 
 		return NextResponse.json(apiDoc);
-	} catch (error) {
-		console.error("Error creating API doc:", error);
+	} catch {
 		return NextResponse.json(
-			{
-				error: error instanceof Error ? error.message : "Internal Server Error",
-				details: error instanceof Error ? error.stack : undefined,
-			},
+			{ error: "Internal Server Error" },
 			{ status: 500 }
 		);
 	}
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
 	try {
-		const session = await getServerSession(authOptions);
+		const session: Session | null = await getServerSession(authOptions);
 		const { searchParams } = new URL(req.url);
 		const isPublic = searchParams.get("public") === "true";
 
@@ -101,11 +100,10 @@ export async function GET(req: Request) {
 		});
 
 		return NextResponse.json(apiDocs);
-	} catch (error) {
-		console.error("Error fetching API docs:", error);
-		if (error instanceof Error) {
-			return new NextResponse(error.message, { status: 500 });
-		}
-		return new NextResponse("Internal Server Error", { status: 500 });
+	} catch {
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 }
+		);
 	}
 }

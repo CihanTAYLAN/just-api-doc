@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -6,11 +6,12 @@ import { HttpResponse } from "@/lib/classes/http-response";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { passwordStrength } from "check-password-strength";
-import { HttpStatus } from "@/lib/classes/http-status";
+
+export const dynamic = 'force-dynamic';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get session
@@ -59,12 +60,12 @@ export async function PUT(
     const hashedPassword = await bcrypt.hash(new_password, 12);
     // Update password
     await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: { password: hashedPassword },
     });
 
     return HttpResponse.ok(null, "Password updated successfully");
-  } catch (error) {
+  } catch {
     return HttpResponse.internalServerError(
       "There was an error updating the password"
     );

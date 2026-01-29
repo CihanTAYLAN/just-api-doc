@@ -6,7 +6,6 @@
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -14,33 +13,33 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  name          String?
-  password      String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  apiDocs       ApiDoc[]
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  apiDocs   ApiDoc[]
 }
 
 model ApiDoc {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   logo        String?
   jsonUrl     String?
   jsonContent String?
-  isPublic    Boolean   @default(false)
+  isPublic    Boolean  @default(false)
   accessCode  String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // API Authorization settings
-  authType    AuthType  @default(NONE)
-  authKey     String?   // API Key, Basic Auth username, or Bearer token
-  authSecret  String?   // API Key value, Basic Auth password
-  authHeader  String?   // Custom header name for API Key
+  authType   AuthType @default(NONE)
+  authKey    String? // API Key, Basic Auth username, or Bearer token
+  authSecret String? // API Key value, Basic Auth password
+  authHeader String? // Custom header name for API Key
 
   @@index([userId])
 }

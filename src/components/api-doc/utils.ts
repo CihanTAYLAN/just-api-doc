@@ -80,8 +80,8 @@ export async function fetchApiSpec(apiDoc: ApiDoc): Promise<ApiSpec | null> {
 
 			return data;
 		}
-	} catch (error) {
-		console.error("Error fetching API spec:", error);
+	} catch {
+		// Error handling without console logging in production
 	}
 	return null;
 }

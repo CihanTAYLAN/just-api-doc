@@ -1,21 +1,22 @@
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
+import { Session } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { ApiDocViewer } from "@/components/api-doc/ApiDocViewer"
 import Metadata from "@/components/MetaData"
 
 interface ViewApiDocPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     code?: string
-  }
+  }>
 }
 
 export default async function ViewApiDocPage({ params, searchParams }: ViewApiDocPageProps) {
-  const session = await getServerSession(authOptions)
+  const session: Session | null = await getServerSession(authOptions)
   const { id } = await params;
   const accessCode = (await searchParams).code;
 
