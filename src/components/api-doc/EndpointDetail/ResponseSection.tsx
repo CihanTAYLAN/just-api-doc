@@ -7,9 +7,9 @@ interface ResponseSectionProps {
   response: {
     status: number;
     statusText: string;
-    headers: Record<string, string>;
+    headers: Record<string, string | number | boolean | string[] | null>;
     data: unknown;
-  };
+  } | null;
   sending?: boolean;
 }
 

@@ -84,7 +84,7 @@ export default function EditApiDocForm({ apiDoc, isOpen, onClose }: EditApiDocFo
       if (!response.ok) {
         if (data.errors) {
           // Validation errors from zod
-          const errorMessage = data.errors.map((err: any) => err.message).join(", ")
+          const errorMessage = data.errors.map((err: { message: string }) => err.message).join(", ")
           throw new Error(errorMessage)
         } else if (data.error) {
           // Server error

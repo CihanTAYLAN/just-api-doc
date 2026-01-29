@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { OpenAPIV3 } from 'openapi-types';
 import { ApiEndpoint } from '../types';
 
 interface ParametersProps {
@@ -13,7 +14,7 @@ interface ParametersProps {
 
 const ParameterGroup: React.FC<{
   title: string;
-  parameters: any[];
+  parameters: Array<OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject>;
   values: Record<string, string>;
   onChange: (name: string, value: string) => void;
 }> = ({ title, parameters, values, onChange }) => (

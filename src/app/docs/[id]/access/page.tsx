@@ -3,15 +3,16 @@ import { redirect } from "next/navigation"
 import AccessCodeForm from "@/components/AccessCodeForm"
 
 interface AccessPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function AccessPage({ params }: AccessPageProps) {
+  const { id } = await params;
   const apiDoc = await prisma.apiDoc.findUnique({
     where: {
-      id: (await params).id,
+      id,
     },
     select: {
       name: true,

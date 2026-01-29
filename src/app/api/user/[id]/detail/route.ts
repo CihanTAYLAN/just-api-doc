@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { HttpResponse } from "@/lib/classes/http-response";
 import { Session } from "next-auth";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

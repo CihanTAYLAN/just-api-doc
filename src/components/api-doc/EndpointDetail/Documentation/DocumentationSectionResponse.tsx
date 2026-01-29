@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useMemo, useState } from "react";
 import { ApiEndpoint, ApiSpec } from "../../types";
 import classNames from "classnames";
@@ -14,7 +15,8 @@ const resolveSchemaRef = (schema: any, spec: ApiSpec): any => {
 
   if (schema.$ref) {
     const ref = schema.$ref.replace("#/", "").split("/");
-    let resolvedSchema = spec;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolvedSchema: any = spec;
     for (const path of ref) {
       resolvedSchema = resolvedSchema?.[path];
     }
@@ -189,7 +191,7 @@ const DocumentationSectionResponse: FC<DocumentationSectionResponseProps> = ({
 
         {/* Status Code Selector */}
         <div className="flex flex-wrap gap-2">
-          {Object.entries(resolvedResponses).map(([code, response]) => (
+          {Object.entries(resolvedResponses).map(([code]) => (
             <button
               key={code}
               onClick={() => setSelectedCode(code)}

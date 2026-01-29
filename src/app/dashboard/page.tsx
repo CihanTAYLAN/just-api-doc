@@ -61,8 +61,6 @@ export default function DashboardPage() {
 
   const handleEdit = (doc: ApiDoc) => {
     setSelectedDoc(doc)
-    console.log(doc);
-
     setIsEditModalOpen(true)
   }
 

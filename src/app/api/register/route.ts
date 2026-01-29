@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { passwordStrength } from "check-password-strength";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const { email, password, name } = await req.json();
@@ -40,7 +42,7 @@ export async function POST(req: Request) {
         name: user.name,
       },
     });
-  } catch (error) {
+  } catch {
     return new NextResponse("Internal error", { status: 500 });
   }
 }

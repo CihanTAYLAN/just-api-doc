@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";;
 import React, { useCallback, useMemo } from 'react';
 import { ApiEndpoint, ApiSpec } from '../types';
@@ -11,11 +12,12 @@ interface RequestBodySectionProps {
   endpoint: ApiEndpoint;
   spec: ApiSpec;
   requestBody: unknown;
-  setRequestBody: (requestBody: any) => void;
+  setRequestBody: (requestBody: Record<string, unknown> | null) => void;
   selectedContentType: string;
   setSelectedContentType: (contentType: string) => void;
   formData: Record<string, string>;
-  onFormDataChange: (formData: Record<string, string>) => void;
+  onFormDataChange: (formData: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)) => void;
+  children?: React.ReactNode;
 }
 
 export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
@@ -24,14 +26,16 @@ export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
   requestBody,
   setRequestBody,
   selectedContentType,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setSelectedContentType,
   formData,
   onFormDataChange,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   children
 }) => {
   // Handle form data changes
   const handleFormDataChange = useCallback((key: string, value: string) => {
-    onFormDataChange((prev: any) => ({
+    onFormDataChange((prev: Record<string, string>) => ({
       ...prev,
       [key]: value,
     }));
@@ -66,10 +70,10 @@ export const RequestBodySection: React.FC<RequestBodySectionProps> = ({
             const schema = content.schema;
             if (!schema) return '{}';
 
-            const resolvedSchema = resolveSchema(schema, spec);
-            const example = generateExampleFromSchema(resolvedSchema);
+            const resolvedSchema = resolveSchema(schema, spec as any);
+            const example = generateExampleFromSchema(resolvedSchema || undefined);
             if (!requestBody) {
-              setRequestBody(JSON.stringify(example, null, 2));
+              setRequestBody((example as Record<string, unknown>) || null);
             }
             return JSON.stringify(example, null, 2);
           } catch {
